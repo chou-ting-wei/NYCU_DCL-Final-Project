@@ -245,30 +245,32 @@ reg  [20:0] pixel_tea_addr2;
 reg  [20:0] pixel_coke_addr2;
 reg  [20:0] pixel_drop_addr;
 
-reg  [20:0] pixel_num1_1_addr;
-reg  [20:0] pixel_num1_2_addr;
-reg  [20:0] pixel_num1_3_addr;
-reg  [20:0] pixel_num1_4_addr;
-reg  [20:0] pixel_num1_5_addr;
-reg  [20:0] pixel_num1_6_addr;
-reg  [20:0] pixel_num1_7_addr;
-reg  [20:0] pixel_num1_8_addr;
-reg  [20:0] pixel_num2_1_addr;
-reg  [20:0] pixel_num2_2_addr;
-reg  [20:0] pixel_num2_3_addr;
-reg  [20:0] pixel_num2_4_addr;
-reg  [20:0] pixel_num2_5_addr;
-reg  [20:0] pixel_num2_6_addr;
-reg  [20:0] pixel_num2_7_addr;
-reg  [20:0] pixel_num2_8_addr;
-reg  [20:0] pixel_num3_1_addr;
-reg  [20:0] pixel_num3_2_addr;
-reg  [20:0] pixel_num3_3_addr;
-reg  [20:0] pixel_num3_4_addr;
-reg  [20:0] pixel_num4_1_addr;
-reg  [20:0] pixel_num4_2_addr;
-reg  [20:0] pixel_num4_3_addr;
-reg  [20:0] pixel_num4_4_addr;
+// reg  [20:0] pixel_num1_1_addr;
+// reg  [20:0] pixel_num1_2_addr;
+// reg  [20:0] pixel_num1_3_addr;
+// reg  [20:0] pixel_num1_4_addr;
+// reg  [20:0] pixel_num1_5_addr;
+// reg  [20:0] pixel_num1_6_addr;
+// reg  [20:0] pixel_num1_7_addr;
+// reg  [20:0] pixel_num1_8_addr;
+// reg  [20:0] pixel_num2_1_addr;
+// reg  [20:0] pixel_num2_2_addr;
+// reg  [20:0] pixel_num2_3_addr;
+// reg  [20:0] pixel_num2_4_addr;
+// reg  [20:0] pixel_num2_5_addr;
+// reg  [20:0] pixel_num2_6_addr;
+// reg  [20:0] pixel_num2_7_addr;
+// reg  [20:0] pixel_num2_8_addr;
+// reg  [20:0] pixel_num3_1_addr;
+// reg  [20:0] pixel_num3_2_addr;
+// reg  [20:0] pixel_num3_3_addr;
+// reg  [20:0] pixel_num3_4_addr;
+// reg  [20:0] pixel_num4_1_addr;
+// reg  [20:0] pixel_num4_2_addr;
+// reg  [20:0] pixel_num4_3_addr;
+// reg  [20:0] pixel_num4_4_addr;
+
+reg  [20:0] pixel_num_addr;
 
 reg  [20:0] pixel_select_top_addr;
 reg  [20:0] pixel_select_addr;
@@ -359,16 +361,16 @@ reg [20:0] seven_addr;
 reg [20:0] eight_addr;
 reg [20:0] nine_addr;
 initial begin
-  zero_addr = 0;
-  one_addr = NUM_W * NUM_H;
-  two_addr = NUM_W * NUM_H * 2;
-  three_addr = NUM_W * NUM_H * 3;
-  four_addr = NUM_W * NUM_H * 4;
-  five_addr = NUM_W * NUM_H * 5;
-  six_addr = NUM_W * NUM_H * 6;
-  seven_addr = NUM_W * NUM_H * 7;
-  eight_addr = NUM_W * NUM_H * 8;
-  nine_addr = NUM_W * NUM_H * 9;
+  zero_addr = VEND_W*VEND_H;
+  one_addr = VEND_W*VEND_H+NUM_W * NUM_H;
+  two_addr = VEND_W*VEND_H+NUM_W * NUM_H * 2;
+  three_addr = VEND_W*VEND_H+NUM_W * NUM_H * 3;
+  four_addr = VEND_W*VEND_H+NUM_W * NUM_H * 4;
+  five_addr = VEND_W*VEND_H+NUM_W * NUM_H * 5;
+  six_addr = VEND_W*VEND_H+NUM_W * NUM_H * 6;
+  seven_addr = VEND_W*VEND_H+NUM_W * NUM_H * 7;
+  eight_addr = VEND_W*VEND_H+NUM_W * NUM_H * 8;
+  nine_addr = VEND_W*VEND_H+NUM_W * NUM_H * 9;
 end
 
 wire [3:0]  btn_level, btn_pressed;
@@ -447,7 +449,7 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
 
-sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images.mem"))
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H+NUM_W * NUM_H * 10), .FILE("images.mem"))
   ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
           .addr_2(sram_num_addr), .data_i_2(data_num_in), .data_o_2(data_num_out));
@@ -510,6 +512,9 @@ assign sram_money_top_addr = pixel_money_top_addr;
 assign data_money_top_in = 12'h000;
 assign sram_money_addr = pixel_money_addr;
 assign data_money_in = 12'h000;
+
+assign sram_num_addr = pixel_num_addr;
+assign data_num_in = 12'h000;
 
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
@@ -889,46 +894,125 @@ always @ (posedge clk) begin
     end
 
     if (num1_1_region) begin
-      pixel_num1_1_addr <= select_base_addr(used_water_num) + 
+      pixel_num_addr <= select_base_addr(used_water_num) + 
                             ((pixel_y >> 1) - num1_1_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_1_pos) >> 1);
     end
     if (num1_2_region) begin
-      pixel_num1_2_addr <= select_base_addr(water_num) + 
+      pixel_num_addr <= select_base_addr(water_num) + 
                             ((pixel_y >> 1) - num1_2_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_2_pos) >> 1);
     end
     if (num1_3_region) begin
-      pixel_num1_3_addr <= select_base_addr(juice_num) + 
+      pixel_num_addr <= select_base_addr(used_juice_num) + 
                             ((pixel_y >> 1) - num1_3_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_3_pos) >> 1);
     end
     if (num1_4_region) begin
-      pixel_num1_4_addr <= select_base_addr(used_juice_num) + 
+      pixel_num_addr <= select_base_addr(juice_num) + 
                             ((pixel_y >> 1) - num1_4_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_4_pos) >> 1);
     end
     if (num1_5_region) begin
-      pixel_num1_5_addr <= select_base_addr(tea_num) + 
+      pixel_num_addr <= select_base_addr(used_tea_num) + 
                             ((pixel_y >> 1) - num1_5_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_5_pos) >> 1);
     end
     if (num1_6_region) begin
-      pixel_num1_6_addr <= select_base_addr(used_tea_num) + 
+      pixel_num_addr <= select_base_addr(tea_num) + 
                             ((pixel_y >> 1) - num1_6_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_6_pos) >> 1);
     end
     if (num1_7_region) begin
-      pixel_num1_7_addr <= select_base_addr(cola_num) + 
+      pixel_num_addr <= select_base_addr(used_cola_num) + 
                             ((pixel_y >> 1) - num1_7_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_7_pos) >> 1);
     end
     if (num1_8_region) begin
-      pixel_num1_8_addr <= select_base_addr(used_cola_num) + 
+      pixel_num_addr <= select_base_addr(cola_num) + 
                             ((pixel_y >> 1) - num1_8_vpos) * NUM_W +
                             ((pixel_x + (NUM_W * 2 - 1) - num1_8_pos) >> 1);
     end
-    // ... owowowowowowo
+    if (num2_1_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_one) + 
+                            ((pixel_y >> 1) - num2_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_1_pos) >> 1);
+    end
+    if (num2_2_region) begin
+      pixel_num_addr <= select_base_addr(coin_one) + 
+                            ((pixel_y >> 1) - num2_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_2_pos) >> 1);
+    end
+    if (num2_3_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_five) + 
+                            ((pixel_y >> 1) - num2_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_3_pos) >> 1);
+    end
+    if (num2_4_region) begin
+      pixel_num_addr <= select_base_addr(coin_five) + 
+                            ((pixel_y >> 1) - num2_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_4_pos) >> 1);
+    end
+    if (num2_5_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_ten) + 
+                            ((pixel_y >> 1) - num2_5_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_5_pos) >> 1);
+    end
+    if (num2_6_region) begin
+      pixel_num_addr <= select_base_addr(coin_ten) + 
+                            ((pixel_y >> 1) - num2_6_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_6_pos) >> 1);
+    end
+    if (num2_7_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_hundred) + 
+                            ((pixel_y >> 1) - num2_7_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_7_pos) >> 1);
+    end
+    if (num2_8_region) begin
+      pixel_num_addr <= select_base_addr(coin_hundred) + 
+                            ((pixel_y >> 1) - num2_8_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_8_pos) >> 1);
+    end
+    if (num3_1_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_one) + 
+                            ((pixel_y >> 1) - num3_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_1_pos) >> 1);
+    end
+    if (num3_2_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_five) + 
+                            ((pixel_y >> 1) - num3_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_2_pos) >> 1);
+    end
+    if (num3_3_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_ten) + 
+                            ((pixel_y >> 1) - num3_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_3_pos) >> 1);
+    end
+    if (num3_4_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_hundred) + 
+                            ((pixel_y >> 1) - num3_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_4_pos) >> 1);
+    end
+    // if (num4_1_region) begin
+    //   pixel_num_addr <= select_base_addr() + 
+    //                         ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
+    // end
+    // if (num4_2_region) begin
+    //   pixel_num_addr <= select_base_addr() +
+    //                         ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
+    // end
+    // if (num4_3_region) begin
+    //   pixel_num_addr <= select_base_addr() +
+    //                         ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
+    // end
+    // if (num4_4_region) begin
+    //   pixel_num_addr <= select_base_addr() +
+    //                         ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
+    // end
   end
 end
 
@@ -965,54 +1049,54 @@ always @(*) begin
     // if (vend_region)
     //   // rgb_next = data_vend_out;
     //   rgb_next = 12'hf00;
-    else if (num1_1_region)
-      rgb_next = 12'hf00;
-    else if (num1_2_region)
-      rgb_next = 12'hf00;
-    else if (num1_3_region)
-      rgb_next = 12'hf00;
-    else if (num1_4_region)
-      rgb_next = 12'hf00;
-    else if (num1_5_region)
-      rgb_next = 12'hf00;
-    else if (num1_6_region)
-      rgb_next = 12'hf00;
-    else if (num1_7_region)
-      rgb_next = 12'hf00;
-    else if (num1_8_region)
-      rgb_next = 12'hf00;
-    else if (num2_1_region)
-      rgb_next = 12'hf00;
-    else if (num2_2_region)
-      rgb_next = 12'hf00;
-    else if (num2_3_region)
-      rgb_next = 12'hf00;
-    else if (num2_4_region)
-      rgb_next = 12'hf00;
-    else if (num2_5_region)
-      rgb_next = 12'hf00;
-    else if (num2_6_region)
-      rgb_next = 12'hf00;
-    else if (num2_7_region)
-      rgb_next = 12'hf00;
-    else if (num2_8_region)
-      rgb_next = 12'hf00;
-    else if (num3_1_region)
-      rgb_next = 12'hf00;
-    else if (num3_2_region)
-      rgb_next = 12'hf00;
-    else if (num3_3_region)
-      rgb_next = 12'hf00;
-    else if (num3_4_region)
-      rgb_next = 12'hf00;
-    else if (num4_1_region)
-      rgb_next = 12'hf00;
-    else if (num4_2_region)
-      rgb_next = 12'hf00;
-    else if (num4_3_region)
-      rgb_next = 12'hf00;
-    else if (num4_4_region)
-      rgb_next = 12'hf00;
+    else if (num1_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_5_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_6_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_7_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_8_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_5_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_6_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_7_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_8_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
 
     else if (block1_region)
       rgb_next = 12'h555;
