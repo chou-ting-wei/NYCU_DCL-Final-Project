@@ -36,7 +36,7 @@ module lab10(
 );
 
 // Declare system variables
-// reg  [35:0] fish1_clock;
+reg  [35:0] drop_clock;
 // reg  [35:0] fish2_clock;
 // reg  [35:0] fish3_clock;
 // wire [9:0]  fish1_pos;
@@ -51,21 +51,6 @@ wire        vend_region;
 
 wire [9:0]  drop_pos;
 wire        drop_region;
-
-wire [9:0]  block1_pos;
-wire        block1_region;
-
-wire [9:0]  block2_pos;
-wire        block2_region;
-
-wire [9:0]  block3_pos;
-wire        block3_region;
-
-wire [9:0]  block4_pos;
-wire        block4_region;
-
-wire [9:0]  sm_block_pos;
-wire        sm_block_region;
 
 // declare SRAM control signals
 wire [20:0] sram_f1_addr;
@@ -87,6 +72,14 @@ wire [11:0] data_f1_out;
 wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
 wire [11:0] data_vend_out;
+
+wire [20:0] sram_water_addr;
+wire [11:0] data_water_in;
+wire [11:0] data_water_out;
+
+wire [20:0] sram_tea_addr;
+wire [11:0] data_tea_in;
+wire [11:0] data_tea_out;
 
 wire        sram_we, sram_en;
 
@@ -111,6 +104,8 @@ reg  [11:0] rgb_next; // RGB value for the next pixel
 // reg  [20:0] pixel_bg_addr;
 
 reg  [20:0] pixel_vend_addr;
+reg  [20:0] pixel_drop_addr;
+reg  [20:0] pixel_water_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -140,17 +135,15 @@ reg [20:0] vend_addr;
 localparam drop_vpos   = 145;
 localparam DROP_W      = 56;
 localparam DROP_H      = 13;
+reg [20:0] drop_addr;
 
-localparam block1_vpos  = 10;
-localparam block2_vpos  = 67;
-localparam block3_vpos  = 124;
-localparam block4_vpos  = 181;
-localparam BLOCK_W      = 190;
-localparam BLOCK_H      = 50;
+localparam WATER_W      = 18;
+localparam WATER_H      = 27;
+reg [20:0] water_addr;
 
-localparam sm_block_vpos  = 190;
-localparam SM_BLOCK_W      = 100;
-localparam SM_BLOCK_H      = 40;
+localparam TEA_W      = 18;
+localparam TEA_H      = 27;
+reg [20:0] tea_addr;
 
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
@@ -162,7 +155,7 @@ reg  [3:0]  prev_btn_level;
 // reg [7:0] fish1_vpos = 8'd40; // Vertical position of fish1
 // reg [7:0] fish2_vpos = 8'd80; // Vertical position of fish2
 // reg [7:0] fish3_vpos = 8'd120; // Vertical position of fish3
-
+reg [8:0] water_vpos = 8'd118;
 // Direction: 0 = left, 1 = right
 // reg fish1_dir;
 // reg fish2_dir;
@@ -346,10 +339,10 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images
           .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
           .addr_2(sram_f1_addr), .data_i_2(data_f1_in), .data_o_2(data_f1_out));
 
-// sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(FISH2_W*FISH2_H*4+FISH3_W*FISH3_H*4), .FILE("images2.mem"))
-//   ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
-//           .addr_1(sram_f2_addr), .data_i_1(data_f2_in), .data_o_1(data_f2_out),
-//           .addr_2(sram_f3_addr), .data_i_2(data_f3_in), .data_o_2(data_f3_out));
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H + TEA_W*TEA_H), .FILE("images2.mem"))
+  ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_water_addr), .data_i_1(data_water_in), .data_o_1(data_water_out),
+          .addr_2(sram_tea_addr), .data_i_2(data_tea_in), .data_o_2(data_tea_out));
 
 
 // assign sram_we = usr_sw[0]; // In this demo, we do not write the SRAM. However, if
@@ -370,7 +363,8 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images
 
 assign sram_vend_addr = pixel_vend_addr;
 assign data_vend_in = 12'h000;
-
+assign sram_water_addr = pixel_water_addr;
+assign data_water_in = 12'h000;
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -397,12 +391,7 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 
 assign vend_pos = 220;
 assign drop_pos = 176;
-assign block1_pos = 620;
-assign block2_pos = 620;
-assign block3_pos = 620;
-assign block4_pos = 620;
-assign sm_block_pos = 220;
-
+assign water_pos = 176;
 // always @(*) begin
 //   case (speed_level[0])
 //     3'd0: begin
@@ -489,6 +478,24 @@ assign sm_block_pos = 220;
 //     end
 //   endcase
 // end
+
+// drop clock control
+wire [9:0] water_fall_dis;
+reg at_bottom; // item falls to reach bottom
+assign water_fall_dis = drop_clock[31:24];
+always @(*) begin
+  if(~reset_n) begin
+    drop_clock <= 0;
+  end
+  else if (P == S_MAIN_DROP) begin
+    if(~at_bottom) begin
+      drop_clock <= drop_clock + 1;
+    end
+    else begin
+      drop_clock <= 0;
+    end
+  end
+end
 
 // always @(posedge clk) begin
 //   if (~reset_n) begin
@@ -592,116 +599,9 @@ assign drop_region =
           pixel_y >= (drop_vpos<<1) && pixel_y < (drop_vpos+DROP_H)<<1 &&
           (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
 
-// assign block1_region =
-//           pixel_y >= (block1_vpos<<1) && pixel_y < (block1_vpos+BLOCK_H)<<1 &&
-//           (pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1;
-
-// assign block2_region =
-//           pixel_y >= (block2_vpos<<1) && pixel_y < (block2_vpos+BLOCK_H)<<1 &&
-//           (pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1;
-
-// assign block3_region =
-//           pixel_y >= (block3_vpos<<1) && pixel_y < (block3_vpos+BLOCK_H)<<1 &&
-//           (pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1;
-
-// assign block4_region =
-//           pixel_y >= (block4_vpos<<1) && pixel_y < (block4_vpos+BLOCK_H)<<1 &&
-//           (pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1;
-
-// assign sm_block_region =
-//           pixel_y >= (sm_block_vpos<<1) && pixel_y < (sm_block_vpos+SM_BLOCK_H)<<1 &&
-//           (pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1;
-
-assign block1_region =
-    (
-        (pixel_y == (block1_vpos << 1)) &&
-        ((pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1)
-    ) ||
-    (
-        (pixel_y == ((block1_vpos + BLOCK_H) << 1) - 1) &&
-        ((pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1)
-    ) ||
-    (
-        (pixel_x == block1_pos) &&
-        (pixel_y >= (block1_vpos << 1) && pixel_y < (block1_vpos + BLOCK_H) << 1)
-    ) ||
-    (
-        (pixel_x == block1_pos - 2 * BLOCK_W + 1) &&
-        (pixel_y >= (block1_vpos << 1) && pixel_y < (block1_vpos + BLOCK_H) << 1)
-    );
-
-assign block2_region =
-    (
-        (pixel_y == (block2_vpos << 1)) &&
-        ((pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1)
-    ) ||
-    (
-        (pixel_y == ((block2_vpos + BLOCK_H) << 1) - 1) &&
-        ((pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1)
-    ) ||
-    (
-        (pixel_x == block2_pos) &&
-        (pixel_y >= (block2_vpos << 1) && pixel_y < (block2_vpos + BLOCK_H) << 1)
-    ) ||
-    (
-        (pixel_x == block2_pos - 2 * BLOCK_W + 1) &&
-        (pixel_y >= (block2_vpos << 1) && pixel_y < (block2_vpos + BLOCK_H) << 1)
-    );
-
-assign block3_region =
-    (
-        (pixel_y == (block3_vpos << 1)) &&
-        ((pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1)
-    ) ||
-    (
-        (pixel_y == ((block3_vpos + BLOCK_H) << 1) - 1) &&
-        ((pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1)
-    ) ||
-    (
-        (pixel_x == block3_pos) &&
-        (pixel_y >= (block3_vpos << 1) && pixel_y < (block3_vpos + BLOCK_H) << 1)
-    ) ||
-    (
-        (pixel_x == block3_pos - 2 * BLOCK_W + 1) &&
-        (pixel_y >= (block3_vpos << 1) && pixel_y < (block3_vpos + BLOCK_H) << 1)
-    );
-
-assign block4_region =
-    (
-        (pixel_y == (block4_vpos << 1)) &&
-        ((pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1)
-    ) ||
-    (
-        (pixel_y == ((block4_vpos + BLOCK_H) << 1) - 1) &&
-        ((pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1)
-    ) ||
-    (
-        (pixel_x == block4_pos) &&
-        (pixel_y >= (block4_vpos << 1) && pixel_y < (block4_vpos + BLOCK_H) << 1)
-    ) ||
-    (
-        (pixel_x == block4_pos - 2 * BLOCK_W + 1) &&
-        (pixel_y >= (block4_vpos << 1) && pixel_y < (block4_vpos + BLOCK_H) << 1)
-    );
-
-assign sm_block_region =
-    (
-        (pixel_y == (sm_block_vpos << 1)) &&
-        ((pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1)
-    ) ||
-    (
-        (pixel_y == ((sm_block_vpos + SM_BLOCK_H) << 1) - 1) &&
-        ((pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1)
-    ) ||
-    (
-        (pixel_x == sm_block_pos) &&
-        (pixel_y >= (sm_block_vpos << 1) && pixel_y < (sm_block_vpos + SM_BLOCK_H) << 1)
-    ) ||
-    (
-        (pixel_x == sm_block_pos - 2 * SM_BLOCK_W + 1) &&
-        (pixel_y >= (sm_block_vpos << 1) && pixel_y < (sm_block_vpos + SM_BLOCK_H) << 1)
-    );
-
+assign fall_water_region =
+          pixel_y >= ((water_vpos + water_fall_dis)<<1) && pixel_y < (water_vpos + WATER_H + water_fall_dis)<<1 &&
+          (pixel_x + 17) >= water_pos && pixel_x < water_pos + 1;
 // always @ (posedge clk) begin
 // if (~reset_n) begin
 //     pixel_f1_addr <= 0;
@@ -752,11 +652,16 @@ assign sm_block_region =
 always @ (posedge clk) begin
   if (~reset_n)
     pixel_vend_addr <= 0;
-  else
+  else begin
     if (vend_region) begin
       pixel_vend_addr <= ((pixel_y>>1)-vend_vpos)*VEND_W +
                     ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
     end
+    if (fall_water_region) begin
+      pixel_water_addr <= ((pixel_y>>1)-water_vpos - water_fall_dis)*WATER_W +
+                    ((pixel_x +(WATER_W*2-1)-water_pos)>>1);
+    end
+  end
 end
 
 // End of the AGU code.
@@ -772,7 +677,9 @@ always @(*) begin
   if (~video_on)
     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
   else
-    if (drop_region)
+    if (fall_water_region)
+      rgb_next = 12'h00f;
+    else if (drop_region)
       rgb_next = 12'hf00;
     else if (vend_region && data_vend_out != 12'h0f0)
       rgb_next = data_vend_out;
@@ -784,16 +691,6 @@ always @(*) begin
     // if (vend_region)
     //   // rgb_next = data_vend_out;
     //   rgb_next = 12'hf00;
-    else if (block1_region)
-      rgb_next = 12'h555;
-    else if (block2_region)
-      rgb_next = 12'h555;
-    else if (block3_region)
-      rgb_next = 12'h555;
-    else if (block4_region)
-      rgb_next = 12'h555;
-    else if (sm_block_region)
-      rgb_next = 12'h555;
     else
       rgb_next = 12'hed5;
 end
@@ -836,7 +733,8 @@ always @(*) begin // FSM next-state logic
       S_MAIN_BUY:
         P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_BUY;
       S_MAIN_PAY:
-        P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
+        // P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
+        P_next = (btn_pressed[3]) ? S_MAIN_DROP : S_MAIN_PAY;
       S_MAIN_CALC: begin
         if (calc_done) begin
           if (refund_valid == 2'b10) begin
@@ -907,9 +805,9 @@ end
 // calculate total amount
 always @(posedge clk) begin
   if (~reset_n)begin
-    water_num <= 8;
-    tea_num <= 7;
-    juice_num <= 6;
+    water_num <= 9;
+    tea_num <= 9;
+    juice_num <= 9;
     cola_num <= 9;
     used_water_num <= 0;
     used_tea_num <= 0;
@@ -1000,10 +898,6 @@ always @(posedge clk) begin
     used_coin_five <= 0;
     used_coin_ten <= 0;
     used_coin_hundred <= 0;
-    coin_one <= 7;
-    coin_five <= 4;
-    coin_ten <= 6;
-    coin_hundred <= 8;
   end
   else if (P == S_MAIN_PAY) begin
     if (btn_pressed[2]) begin
@@ -1070,6 +964,14 @@ always @ (posedge clk) begin
     ret_coin_hundred <= 4'd0;
     refund_valid     <= 2'b00;
     calc_done        <= 1'b0;
+    mach_coin_one    <= 4'd9;
+    mach_coin_five   <= 4'd9;
+    mach_coin_ten    <= 4'd9;
+    mach_coin_hundred<= 4'd9;
+    coin_one <= 9;
+    coin_five <= 9;
+    coin_ten <= 9;
+    coin_hundred <= 9;
   end else begin
     used_total = used_coin_one * 1 + used_coin_five * 5 + 
                 used_coin_ten * 10 + used_coin_hundred * 100;
@@ -1145,6 +1047,97 @@ end
 
 // ------------------------------------------------------------------------
 // S_MAIN_DROP
+reg [1:0] what_item_fall;
+reg [3:0] remain_water_num, 
+          remain_tea_num, 
+          remain_juice_num, 
+          remain_cola_num; 
+          // how many item remain to fall
+localparam [1:0] FALL_WATER = 0,
+                 FALL_TEA = 1,
+                 FALL_JUICE = 2,
+                 FALL_COLA = 3;
+
+// judge whether the item touched the bottom
+// need modify: initial drop y, bottom location
+always @(*) begin
+  if(~reset_n) begin
+    remain_water_num <= 0;
+    remain_tea_num <= 0;
+    remain_juice_num <= 0;
+    remain_cola_num <= 0;
+  end
+  // set remain constant
+  else if (P == S_MAIN_PAY && P_next == S_MAIN_DROP) begin
+    remain_water_num <= used_water_num;
+    remain_tea_num <= used_tea_num;
+    remain_juice_num <= used_juice_num;
+    remain_cola_num <= used_cola_num;
+  end
+  // remain constant minus
+  else if (P == S_MAIN_DROP) begin
+    if((water_vpos + water_fall_dis) > 168) begin
+      case(what_item_fall)
+      FALL_WATER: begin
+        remain_water_num <= remain_water_num - 1;
+      end
+      FALL_TEA: begin
+        remain_tea_num <= remain_tea_num - 1;
+      end
+      FALL_JUICE: begin
+        remain_juice_num <= remain_juice_num - 1;
+      end
+      FALL_COLA: begin
+        remain_cola_num <= remain_cola_num - 1;
+      end
+      endcase
+    end
+  end
+end
+always @(*) begin
+  if(~reset_n) begin
+    at_bottom <= 0;
+  end
+  // remain constant minus
+  else if (P == S_MAIN_DROP) begin
+    if(at_bottom == 1) begin
+      at_bottom <= 0;
+    end
+    else if((water_vpos + water_fall_dis) > 168) begin
+      at_bottom <= 1;
+    end
+  end
+end
+// control what item to fall
+// need modify: item image
+always @(*) begin
+  if(~reset_n) begin
+    what_item_fall <= 0;
+  end
+  else if (P == S_MAIN_DROP) begin
+    if (remain_water_num > 0) begin
+      // use water image to fall
+      what_item_fall <= FALL_WATER;
+    end
+    else if (remain_tea_num > 0) begin
+      // use tea image to fall
+      what_item_fall <= FALL_TEA;
+    end
+    else if (remain_juice_num > 0) begin
+      // use juice image to fall
+      what_item_fall <= FALL_JUICE;
+    end
+    else if (remain_cola_num > 0) begin
+      // use cola image to fall
+      what_item_fall <= FALL_COLA;
+    end
+  end
+end
+
+// reset falling
+always @(posedge clk) begin
+  
+end
 
 // ------------------------------------------------------------------------
 
