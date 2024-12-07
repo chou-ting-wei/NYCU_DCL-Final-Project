@@ -574,6 +574,14 @@ always @ (posedge clk) begin
       pixel_tea_addr <= WATER_H * WATER_W + ((pixel_y>>1) - tea_vpos)*TEA_W +
                     ((pixel_x + (TEA_W*2-1) - tea_pos)>>1);
     end
+    if (fall_juice_region) begin
+      pixel_tea_addr <= /**/ ((pixel_y>>1) - tea_vpos)*TEA_W +
+                    ((pixel_x + (TEA_W*2-1) - tea_pos)>>1);
+    end
+    if (fall_coke_region) begin
+      pixel_tea_addr <= /**/ ((pixel_y>>1) - tea_vpos)*TEA_W +
+                    ((pixel_x + (TEA_W*2-1) - tea_pos)>>1);
+    end
   end
 end
 
