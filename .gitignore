@@ -1,0 +1,5 @@
+vivado.log
+vivado.jou
+*.str
+.Xil
+*.cache
