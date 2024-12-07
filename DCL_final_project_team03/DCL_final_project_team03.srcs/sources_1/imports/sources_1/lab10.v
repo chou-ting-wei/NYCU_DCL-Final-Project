@@ -36,11 +36,13 @@ module lab10(
 );
 
 // Declare system variables
+
 reg  [31:0] water_drop_clock;
 reg  [31:0] tea_drop_clock;
 reg  [31:0] juice_drop_clock;
 reg  [31:0] coke_drop_clock;
 // vending machine item
+
 wire [9:0]  vend_pos;
 wire        vend_region;
 
@@ -68,13 +70,142 @@ wire        fall_tea_region;
 wire [9:0]  drop_juice_pos;
 wire        fall_juice_region;
 
+wire [9:0]  select_top_pos;
+wire        select_top_region;
+
+wire [9:0]  select_pos1;
+wire        select_region1;
+
+wire [9:0]  select_pos2;
+wire        select_region2;
+
+wire [9:0]  money_top_pos;
+wire        money_top_region;
+
+wire [9:0]  money_pos1;
+wire        money_region1;
+
+wire [9:0]  money_pos2;
+wire        money_region2;
+
+wire [9:0]  sm_block_pos;
+wire        sm_block_region;
+
 wire [9:0]  drop_coke_pos;
 wire        fall_coke_region;
 
-// declare SRAM control signals
-wire [20:0] sram_f1_addr;
-wire [11:0] data_f1_in;
-wire [11:0] data_f1_out;
+wire [9:0]  rest_pos;
+wire        rest_region;
+
+wire [9:0]  num0_1_pos;
+wire        num0_1_region;
+
+wire [9:0]  num0_2_pos;
+wire        num0_2_region;
+
+wire [9:0]  num0_3_pos;
+wire        num0_3_region;
+
+wire [9:0]  num0_4_pos;
+wire        num0_4_region;
+
+wire [9:0]  num1_1_pos;
+wire        num1_1_region;
+
+wire [9:0]  num1_2_pos;
+wire        num1_2_region;
+
+wire [9:0]  num1_3_pos;
+wire        num1_3_region;
+
+wire [9:0]  num1_4_pos;
+wire        num1_4_region;
+
+wire [9:0]  num1_5_pos;
+wire        num1_5_region;
+
+wire [9:0]  num1_6_pos;
+wire        num1_6_region;
+
+wire [9:0]  num1_7_pos;
+wire        num1_7_region;
+
+wire [9:0]  num1_8_pos;
+wire        num1_8_region;
+
+wire [9:0]  num2_1_pos;
+wire        num2_1_region;
+
+wire [9:0]  num2_2_pos;
+wire        num2_2_region;
+
+wire [9:0]  num2_3_pos;
+wire        num2_3_region;
+
+wire [9:0]  num2_4_pos;
+wire        num2_4_region;
+
+wire [9:0]  num2_5_pos;
+wire        num2_5_region;
+
+wire [9:0]  num2_6_pos;
+wire        num2_6_region;
+
+wire [9:0]  num2_7_pos;
+wire        num2_7_region;
+
+wire [9:0]  num2_8_pos;
+wire        num2_8_region;
+
+wire [9:0]  num3_1_pos;
+wire        num3_1_region;
+
+
+wire [9:0]  num3_2_pos;
+wire        num3_2_region;
+
+wire [9:0]  num3_3_pos;
+wire        num3_3_region;
+
+wire [9:0]  num3_4_pos;
+wire        num3_4_region;
+
+wire [9:0]  num4_1_pos;
+wire        num4_1_region;
+
+wire [9:0]  num4_2_pos;
+wire        num4_2_region;
+
+wire [9:0]  num4_3_pos;
+wire        num4_3_region;
+
+wire [9:0]  num4_4_pos;
+wire        num4_4_region;
+
+wire [9:0]  slash1_1_pos;
+wire        slash1_1_region;
+
+wire [9:0]  slash1_2_pos;
+wire        slash1_2_region;
+
+wire [9:0]  slash1_3_pos;
+wire        slash1_3_region;
+
+wire [9:0]  slash1_4_pos;
+wire        slash1_4_region;
+
+wire [9:0]  slash2_1_pos;
+wire        slash2_1_region;
+
+wire [9:0]  slash2_2_pos;
+wire        slash2_2_region;
+
+wire [9:0]  slash2_3_pos;
+wire        slash2_3_region;
+
+wire [9:0]  slash2_4_pos;
+wire        slash2_4_region;
+
 
 wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
@@ -113,7 +244,35 @@ wire [20:0] sram_coke_addr2;
 wire [11:0] data_coke_in2;
 wire [11:0] data_coke_out2;
 
-wire        sram_we, sram_en;
+wire [20:0] sram_num_addr;
+wire [11:0] data_num_in;
+wire [11:0] data_num_out;
+
+wire [20:0] sram_money_top_addr;
+wire [11:0] data_money_top_in;
+wire [11:0] data_money_top_out;
+
+wire [20:0] sram_money_addr;
+wire [11:0] data_money_in;
+wire [11:0] data_money_out;
+
+wire [20:0] sram_select_top_addr;
+wire [11:0] data_select_top_in;
+wire [11:0] data_select_top_out;
+
+wire [20:0] sram_select_addr;
+wire [11:0] data_select_in;
+wire [11:0] data_select_out;
+
+wire [20:0] sram_rest_addr;
+wire [11:0] data_rest_in;
+wire [11:0] data_rest_out;
+
+wire [20:0] sram_slash_addr;
+wire [11:0] data_slash_in;
+wire [11:0] data_slash_out;
+
+wire sram_we, sram_en;
 
 // General VGA control signals
 wire vga_clk;         // 50MHz clock for VGA control
@@ -130,7 +289,6 @@ reg  [11:0] rgb_reg;  // RGB value for the current pixel
 reg  [11:0] rgb_next; // RGB value for the next pixel
   
 // Application-specific VGA signals
-
 reg  [20:0] pixel_vend_addr;
 
 reg  [20:0] pixel_drop_addr;
@@ -144,11 +302,23 @@ reg  [20:0] pixel_water_addr2;
 reg  [20:0] pixel_juice_addr2;
 reg  [20:0] pixel_tea_addr2;
 reg  [20:0] pixel_coke_addr2;
+
+reg  [20:0] pixel_drop_addr;
+
+reg  [20:0] pixel_num_addr;
+reg  [20:0] pixel_slash_addr;
+
+reg  [20:0] pixel_select_top_addr;
+reg  [20:0] pixel_select_addr;
+reg  [20:0] pixel_money_top_addr;
+reg  [20:0] pixel_money_addr;
+
+reg  [20:0] pixel_rest_addr;
+
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
 localparam VBUF_H = 240; // video buffer height
 
-// Set parameters for the images
 
 localparam vend_vpos   = 10;
 localparam VEND_W      = 100;
@@ -164,6 +334,100 @@ localparam WATER_W      = 18;
 localparam WATER_H      = 27;
 reg [20:0] water_addr;
 
+localparam select_top_vpos  = 10;
+localparam select_vpos1  = 20;
+localparam select_vpos2  = 191;
+localparam money_top_vpos  = 67;
+localparam money_vpos1  = 77;
+localparam money_vpos2  = 134;
+
+reg [20:0] select_top_addr;
+reg [20:0] select_addr;
+reg [20:0] money_top_addr;
+reg [20:0] money_addr;
+
+initial begin
+  select_top_addr = 0;
+  select_addr = 10*BLOCK_W;
+  money_top_addr = 0;
+  money_addr = 10*BLOCK_W;
+end
+
+localparam sm_block_vpos  = 190;
+localparam SM_BLOCK_W      = 100;
+localparam SM_BLOCK_H      = 40;
+
+localparam rest_vpos  = 190;
+
+localparam num0_1_vpos  = 190+30;
+localparam num0_2_vpos  = 190+30;
+localparam num0_3_vpos  = 190+30;
+localparam num0_4_vpos  = 190+30;
+
+localparam num1_1_vpos  = 50;
+localparam num1_2_vpos  = 50;
+localparam num1_3_vpos  = 50;
+localparam num1_4_vpos  = 50;
+localparam num1_5_vpos  = 50;
+localparam num1_6_vpos  = 50;
+localparam num1_7_vpos  = 50;
+localparam num1_8_vpos  = 50;
+localparam num2_1_vpos  = 107;
+localparam num2_2_vpos  = 107;
+localparam num2_3_vpos  = 107;
+localparam num2_4_vpos  = 107;
+localparam num2_5_vpos  = 107;
+localparam num2_6_vpos  = 107;
+localparam num2_7_vpos  = 107;
+localparam num2_8_vpos  = 107;
+localparam num3_1_vpos  = 164;
+localparam num3_2_vpos  = 164;
+localparam num3_3_vpos  = 164;
+localparam num3_4_vpos  = 164;
+localparam num4_1_vpos  = 221;
+localparam num4_2_vpos  = 221;
+localparam num4_3_vpos  = 221;
+localparam num4_4_vpos  = 221;
+localparam NUM_W      = 7;
+localparam NUM_H      = 9;
+
+localparam slash1_1_vpos  = 50;
+localparam slash1_2_vpos  = 50;
+localparam slash1_3_vpos  = 50;
+localparam slash1_4_vpos  = 50;
+localparam slash2_1_vpos  = 107;
+localparam slash2_2_vpos  = 107;
+localparam slash2_3_vpos  = 107;
+localparam slash2_4_vpos  = 107;
+
+reg [20:0] zero_addr;
+reg [20:0] one_addr;
+reg [20:0] two_addr;
+reg [20:0] three_addr;
+reg [20:0] four_addr;
+reg [20:0] five_addr;
+reg [20:0] six_addr;
+reg [20:0] seven_addr;
+reg [20:0] eight_addr;
+reg [20:0] nine_addr;
+reg [20:0] slash_addr;
+initial begin
+  zero_addr = VEND_W*VEND_H;
+  one_addr = VEND_W*VEND_H+NUM_W * NUM_H;
+  two_addr = VEND_W*VEND_H+NUM_W * NUM_H * 2;
+  three_addr = VEND_W*VEND_H+NUM_W * NUM_H * 3;
+  four_addr = VEND_W*VEND_H+NUM_W * NUM_H * 4;
+  five_addr = VEND_W*VEND_H+NUM_W * NUM_H * 5;
+  six_addr = VEND_W*VEND_H+NUM_W * NUM_H * 6;
+  seven_addr = VEND_W*VEND_H+NUM_W * NUM_H * 7;
+  eight_addr = VEND_W*VEND_H+NUM_W * NUM_H * 8;
+  nine_addr = VEND_W*VEND_H+NUM_W * NUM_H * 9;
+  slash_addr = SM_BLOCK_H*SM_BLOCK_W;
+end
+
+wire [3:0]  btn_level, btn_pressed;
+reg  [3:0]  prev_btn_level;
+
 localparam TEA_W      = 22;
 localparam TEA_H      = 18;
 reg [20:0] tea_addr;
@@ -176,28 +440,11 @@ localparam COKE_W      = 12;
 localparam COKE_H      = 24;
 reg [20:0] coke_addr;
 
-wire [3:0]  btn_level, btn_pressed;
-reg  [3:0]  prev_btn_level;
-
 reg [9:0] drop_water_vpos;
 reg [9:0] drop_tea_vpos;
 reg [9:0] drop_juice_vpos;
 reg [9:0] drop_coke_vpos;
 
-// Initializes the fish images starting addresses.
-// Note: System Verilog has an easier way to initialize an array,
-//       but we are using Verilog 2001 :(
-
-// integer k;
-// initial begin
-//   for (k = 0; k < 8; k = k + 1) begin
-//     fish1_addr[k] = VBUF_W * VBUF_H + FISH1_W * FISH1_H * k;
-//   end
-//   for (k = 0; k < 4; k = k + 1) begin
-//     fish2_addr[k] = FISH2_W * FISH2_H * k;
-//     fish3_addr[k] = FISH2_W * FISH2_H * 4 + FISH3_W * FISH3_H * k;
-//   end
-// end
 localparam water_vpos2   = 42;
 localparam WATER_W2 = 18;
 localparam WATER_H2 = 27;
@@ -278,10 +525,24 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
 
-sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images.mem"))
+// wire [20:0] sram_tmp_addr;
+// wire [11:0] data_tmp_in;
+// wire [11:0] data_tmp_out;
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H+NUM_W * NUM_H * 10), .FILE("images.mem"))
   ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
-          .addr_2(sram_f1_addr), .data_i_2(data_f1_in), .data_o_2(data_f1_out));
+          .addr_2(sram_num_addr), .data_i_2(data_num_in), .data_o_2(data_num_out));
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(BLOCK_W*BLOCK_H), .FILE("images2.mem"))
+  ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
+         .addr_1(sram_select_top_addr), .data_i_1(data_select_top_in), .data_o_1(data_select_top_out),
+         .addr_2(sram_select_addr), .data_i_2(data_select_in), .data_o_2(data_select_out));
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(BLOCK_W*BLOCK_H), .FILE("images3.mem"))
+  ram_3 (.clk(clk), .we(sram_we), .en(sram_en),
+         .addr_1(sram_money_top_addr), .data_i_1(data_money_top_in), .data_o_1(data_money_top_out),
+         .addr_2(sram_money_addr), .data_i_2(data_money_in), .data_o_2(data_money_out));
 
 // vending item sram
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H+JUICE_W*JUICE_H), .FILE("images4.mem"))
@@ -293,6 +554,18 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(TEA_W*TEA_H+COKE_W*COKE_H), .
   ram_5 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_tea_addr2), .data_i_1(data_tea_in2), .data_o_1(data_tea_out2),
           .addr_2(sram_coke_addr2), .data_i_2(data_coke_in2), .data_o_2(data_coke_out2));
+
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(SM_BLOCK_H*SM_BLOCK_W+NUM_H*NUM_W), .FILE("images6.mem"))
+  ram_6 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_rest_addr), .data_i_1(data_rest_in), .data_o_1(data_rest_out),
+          .addr_2(sram_slash_addr), .data_i_2(data_slash_in), .data_o_2(data_slash_out));
+
+
+assign sram_we = usr_sw[3]; // In this demo, we do not write the SRAM. However, if
+                                  // you set 'sram_we' to 0, Vivado fails to synthesize
+                                  // ram0 as a BRAM -- this is a bug in Vivado.
+assign sram_en = 1;               // Here, we always enable the SRAM block.
 
 // dropping item sram
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H+JUICE_W*JUICE_H), .FILE("images7.mem"))
@@ -308,6 +581,7 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(TEA_W*TEA_H+COKE_W*COKE_H), .
 //                                   // you set 'sram_we' to 0, Vivado fails to synthesize
 //                                   // ram0 as a BRAM -- this is a bug in Vivado.
 // assign sram_en = 1;               // Here, we always enable the SRAM block.
+
 // assign sram_f1_addr = pixel_f1_addr;
 // assign data_f1_in = 12'h000; // SRAM is read-only so we tie inputs to zeros.
 
@@ -342,6 +616,24 @@ assign data_tea_in2 = 12'h000;
 assign sram_coke_addr2 = pixel_coke_addr2;
 assign data_coke_in2 = 12'h000;
 
+assign sram_select_top_addr = pixel_select_top_addr;
+assign data_select_top_in = 12'h000;
+assign sram_select_addr = pixel_select_addr;
+assign data_select_in = 12'h000;
+assign sram_money_top_addr = pixel_money_top_addr;
+assign data_money_top_in = 12'h000;
+assign sram_money_addr = pixel_money_addr;
+assign data_money_in = 12'h000;
+
+assign sram_num_addr = pixel_num_addr;
+assign data_num_in = 12'h000;
+
+assign sram_rest_addr = pixel_rest_addr;
+assign data_rest_in = 12'h000;
+
+assign sram_slash_addr = pixel_slash_addr;
+assign data_slash_in = 12'h000;
+
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -353,6 +645,7 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 // fish clock is the x position of the fish on the VGA screen.
 // Note that the fish will move one screen pixel every 2^20 clock cycles,
 // or 10.49 msec
+
 
 assign vend_pos = 220;
 
@@ -367,6 +660,63 @@ assign vending_tea_pos = 92;
 assign vending_coke_pos = 182;
 
 assign drop_pos = 176;
+assign block1_pos = 620;
+assign block2_pos = 620;
+assign block3_pos = 620;
+assign block4_pos = 620;
+assign sm_block_pos = 220;
+
+assign select_top_pos = 620;
+assign select_pos1 = 620;
+assign select_pos2 = 620;
+assign money_top_pos = 620;
+assign money_pos1 = 620;
+assign money_pos2 = 620;
+
+assign num1_1_pos = 235+44;
+assign num1_2_pos = 235+84;
+assign num1_3_pos = 235+124;
+assign num1_4_pos = 235+164;
+assign num1_5_pos = 235+204;
+assign num1_6_pos = 235+244;
+assign num1_7_pos = 235+284;
+assign num1_8_pos = 235+324;
+assign num2_1_pos = 235+44;
+assign num2_2_pos = 235+84;
+assign num2_3_pos = 235+124;
+assign num2_4_pos = 235+164;
+assign num2_5_pos = 235+204;
+assign num2_6_pos = 235+244;
+assign num2_7_pos = 235+284;
+assign num2_8_pos = 235+324;
+assign num3_1_pos = 235+64;
+assign num3_2_pos = 235+144;
+assign num3_3_pos = 235+224;
+assign num3_4_pos = 235+304;
+assign num4_1_pos = 235+64;
+assign num4_2_pos = 235+144;
+assign num4_3_pos = 235+224;
+assign num4_4_pos = 235+304;
+
+//left-top
+// 15x30 30x30 45x30 75x30
+assign rest_pos = 220;
+assign num0_1_pos = 20+40;
+assign num0_2_pos = 20+70;
+assign num0_3_pos = 20+110;
+assign num0_4_pos = 20+170;
+
+assign slash1_1_pos = 235+64;
+assign slash1_2_pos = 235+144;
+assign slash1_3_pos = 235+224;
+assign slash1_4_pos = 235+304;
+
+assign slash2_1_pos = 235+64;
+assign slash2_2_pos = 235+144;
+assign slash2_3_pos = 235+224;
+assign slash2_4_pos = 235+304;
+
+
 
 assign drop_water_pos = water_pos_reg;
 assign drop_tea_pos = tea_pos_reg; // right bound
@@ -652,6 +1002,7 @@ always @(posedge clk or negedge reset_n) begin
     coke_pos_reg <= 126 + offset;
   end
 end
+
 // End of the animation clock code.
 // ------------------------------------------------------------------------
 
@@ -660,6 +1011,7 @@ end
 // Note that the width x height of the fish image is 64x32, when scaled-up
 // on the screen, it becomes 128x64. 'pos' specifies the right edge of the
 // fish image.
+
 assign vend_region =
           pixel_y >= (vend_vpos<<1) && pixel_y < (vend_vpos+VEND_H)<<1 &&
           (pixel_x + 199) >= vend_pos && pixel_x < vend_pos + 1;
@@ -684,6 +1036,289 @@ assign drop_region =
           pixel_y >= (drop_vpos<<1) && pixel_y < (drop_vpos+DROP_H)<<1 &&
           (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
 
+assign rest_region =
+          pixel_y >= (rest_vpos<<1) && pixel_y < (rest_vpos+SM_BLOCK_H)<<1 &&
+          (pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1;
+
+assign num0_1_region =
+          pixel_y >= (num0_1_vpos<<1) && pixel_y < (num0_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_1_pos && pixel_x < num0_1_pos + 1;
+
+assign num0_2_region =
+          pixel_y >= (num0_2_vpos<<1) && pixel_y < (num0_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_2_pos && pixel_x < num0_2_pos + 1;
+
+assign num0_3_region =
+          pixel_y >= (num0_3_vpos<<1) && pixel_y < (num0_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_3_pos && pixel_x < num0_3_pos + 1;
+
+assign num0_4_region =
+          pixel_y >= (num0_4_vpos<<1) && pixel_y < (num0_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_4_pos && pixel_x < num0_4_pos + 1;
+
+assign num1_1_region =
+          pixel_y >= (num1_1_vpos<<1) && pixel_y < (num1_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_1_pos && pixel_x < num1_1_pos + 1;
+
+assign num1_2_region =
+          pixel_y >= (num1_2_vpos<<1) && pixel_y < (num1_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_2_pos && pixel_x < num1_2_pos + 1;
+
+assign num1_3_region =
+          pixel_y >= (num1_3_vpos<<1) && pixel_y < (num1_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_3_pos && pixel_x < num1_3_pos + 1;
+
+assign num1_4_region =
+          pixel_y >= (num1_4_vpos<<1) && pixel_y < (num1_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_4_pos && pixel_x < num1_4_pos + 1;
+
+assign num1_5_region =
+          pixel_y >= (num1_5_vpos<<1) && pixel_y < (num1_5_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_5_pos && pixel_x < num1_5_pos + 1;
+
+assign num1_6_region =
+          pixel_y >= (num1_6_vpos<<1) && pixel_y < (num1_6_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_6_pos && pixel_x < num1_6_pos + 1;
+
+assign num1_7_region =
+          pixel_y >= (num1_7_vpos<<1) && pixel_y < (num1_7_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_7_pos && pixel_x < num1_7_pos + 1;
+
+assign num1_8_region =
+          pixel_y >= (num1_8_vpos<<1) && pixel_y < (num1_8_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num1_8_pos && pixel_x < num1_8_pos + 1;
+
+assign num2_1_region =
+          pixel_y >= (num2_1_vpos<<1) && pixel_y < (num2_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_1_pos && pixel_x < num2_1_pos + 1;
+
+assign num2_2_region =
+          pixel_y >= (num2_2_vpos<<1) && pixel_y < (num2_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_2_pos && pixel_x < num2_2_pos + 1;
+
+assign num2_3_region =
+          pixel_y >= (num2_3_vpos<<1) && pixel_y < (num2_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_3_pos && pixel_x < num2_3_pos + 1;
+
+assign num2_4_region =
+          pixel_y >= (num2_4_vpos<<1) && pixel_y < (num2_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_4_pos && pixel_x < num2_4_pos + 1;
+
+assign num2_5_region =
+          pixel_y >= (num2_5_vpos<<1) && pixel_y < (num2_5_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_5_pos && pixel_x < num2_5_pos + 1;
+
+assign num2_6_region =
+          pixel_y >= (num2_6_vpos<<1) && pixel_y < (num2_6_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_6_pos && pixel_x < num2_6_pos + 1;
+
+assign num2_7_region =
+          pixel_y >= (num2_7_vpos<<1) && pixel_y < (num2_7_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_7_pos && pixel_x < num2_7_pos + 1;
+
+assign num2_8_region =
+          pixel_y >= (num2_8_vpos<<1) && pixel_y < (num2_8_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_8_pos && pixel_x < num2_8_pos + 1;
+
+assign num3_1_region =
+          pixel_y >= (num3_1_vpos<<1) && pixel_y < (num3_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num3_1_pos && pixel_x < num3_1_pos + 1;
+
+assign num3_2_region =
+          pixel_y >= (num3_2_vpos<<1) && pixel_y < (num3_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num3_2_pos && pixel_x < num3_2_pos + 1;
+
+assign num3_3_region =
+          pixel_y >= (num3_3_vpos<<1) && pixel_y < (num3_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num3_3_pos && pixel_x < num3_3_pos + 1;
+
+assign num3_4_region =
+          pixel_y >= (num3_4_vpos<<1) && pixel_y < (num3_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num3_4_pos && pixel_x < num3_4_pos + 1;
+
+assign num4_1_region =
+          pixel_y >= (num4_1_vpos<<1) && pixel_y < (num4_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num4_1_pos && pixel_x < num4_1_pos + 1;
+
+assign num4_2_region =
+          pixel_y >= (num4_2_vpos<<1) && pixel_y < (num4_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num4_2_pos && pixel_x < num4_2_pos + 1;
+
+assign num4_3_region =
+          pixel_y >= (num4_3_vpos<<1) && pixel_y < (num4_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num4_3_pos && pixel_x < num4_3_pos + 1;
+
+assign num4_4_region =
+          pixel_y >= (num4_4_vpos<<1) && pixel_y < (num4_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num4_4_pos && pixel_x < num4_4_pos + 1;
+
+assign slash1_1_region =
+          pixel_y >= (slash1_1_vpos<<1) && pixel_y < (slash1_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_1_pos && pixel_x < slash1_1_pos + 1;
+
+assign slash1_2_region =
+          pixel_y >= (slash1_2_vpos<<1) && pixel_y < (slash1_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_2_pos && pixel_x < slash1_2_pos + 1;
+
+assign slash1_3_region =
+          pixel_y >= (slash1_3_vpos<<1) && pixel_y < (slash1_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_3_pos && pixel_x < slash1_3_pos + 1;
+
+assign slash1_4_region =
+          pixel_y >= (slash1_4_vpos<<1) && pixel_y < (slash1_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_4_pos && pixel_x < slash1_4_pos + 1;
+
+assign slash2_1_region =
+          pixel_y >= (slash2_1_vpos<<1) && pixel_y < (slash2_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_1_pos && pixel_x < slash2_1_pos + 1;
+
+assign slash2_2_region =
+          pixel_y >= (slash2_2_vpos<<1) && pixel_y < (slash2_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_2_pos && pixel_x < slash2_2_pos + 1;
+
+assign slash2_3_region =
+          pixel_y >= (slash2_3_vpos<<1) && pixel_y < (slash2_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_3_pos && pixel_x < slash2_3_pos + 1;
+
+assign slash2_4_region =
+          pixel_y >= (slash2_4_vpos<<1) && pixel_y < (slash2_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_4_pos && pixel_x < slash2_4_pos + 1;
+
+assign select_top_region =
+          pixel_y >= (select_top_vpos<<1) && pixel_y < (select_top_vpos+10)<<1 &&
+          (pixel_x + 379) >= select_top_pos && pixel_x < select_top_pos + 1;
+
+assign select_region1 =
+          pixel_y >= (select_vpos1<<1) && pixel_y < (select_vpos1+40)<<1 &&
+          (pixel_x + 379) >= select_pos1 && pixel_x < select_pos1 + 1;
+
+assign select_region2 =
+          pixel_y >= (select_vpos2<<1) && pixel_y < (select_vpos2+40)<<1 &&
+          (pixel_x + 379) >= select_pos2 && pixel_x < select_pos2 + 1;
+
+assign money_top_region =
+          pixel_y >= (money_top_vpos<<1) && pixel_y < (money_top_vpos+10)<<1 &&
+          (pixel_x + 379) >= money_top_pos && pixel_x < money_top_pos + 1;
+
+assign money_region1 =
+          pixel_y >= (money_vpos1<<1) && pixel_y < (money_vpos1+40)<<1 &&
+          (pixel_x + 379) >= money_pos1 && pixel_x < money_pos1 + 1;
+
+assign money_region2 =
+          pixel_y >= (money_vpos2<<1) && pixel_y < (money_vpos2+40)<<1 &&
+          (pixel_x + 379) >= money_pos2 && pixel_x < money_pos2 + 1;
+
+assign block1_region =
+    (
+        (pixel_y == (block1_vpos << 1)) &&
+        ((pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block1_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1)
+    ) ||
+    (
+        (pixel_x == block1_pos) &&
+        (pixel_y >= (block1_vpos << 1) && pixel_y < (block1_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block1_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block1_vpos << 1) && pixel_y < (block1_vpos + BLOCK_H) << 1)
+    );
+
+assign block2_region =
+    (
+        (pixel_y == (block2_vpos << 1)) &&
+        ((pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block2_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1)
+    ) ||
+    (
+        (pixel_x == block2_pos) &&
+        (pixel_y >= (block2_vpos << 1) && pixel_y < (block2_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block2_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block2_vpos << 1) && pixel_y < (block2_vpos + BLOCK_H) << 1)
+    );
+
+assign block3_region =
+    (
+        (pixel_y == (block3_vpos << 1)) &&
+        ((pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block3_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1)
+    ) ||
+    (
+        (pixel_x == block3_pos) &&
+        (pixel_y >= (block3_vpos << 1) && pixel_y < (block3_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block3_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block3_vpos << 1) && pixel_y < (block3_vpos + BLOCK_H) << 1)
+    );
+
+assign block4_region =
+    (
+        (pixel_y == (block4_vpos << 1)) &&
+        ((pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block4_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1)
+    ) ||
+    (
+        (pixel_x == block4_pos) &&
+        (pixel_y >= (block4_vpos << 1) && pixel_y < (block4_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block4_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block4_vpos << 1) && pixel_y < (block4_vpos + BLOCK_H) << 1)
+    );
+
+assign sm_block_region =
+    (
+        (pixel_y == (sm_block_vpos << 1)) &&
+        ((pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((sm_block_vpos + SM_BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1)
+    ) ||
+    (
+        (pixel_x == sm_block_pos) &&
+        (pixel_y >= (sm_block_vpos << 1) && pixel_y < (sm_block_vpos + SM_BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == sm_block_pos - 2 * SM_BLOCK_W + 1) &&
+        (pixel_y >= (sm_block_vpos << 1) && pixel_y < (sm_block_vpos + SM_BLOCK_H) << 1)
+    );
+
+function [20:0] select_base_addr;
+  input [3:0] tmp_val;
+  begin
+    case(tmp_val)
+      4'd0: select_base_addr = zero_addr;
+      4'd1: select_base_addr = one_addr;
+      4'd2: select_base_addr = two_addr;
+      4'd3: select_base_addr = three_addr;
+      4'd4: select_base_addr = four_addr;
+      4'd5: select_base_addr = five_addr;
+      4'd6: select_base_addr = six_addr;
+      4'd7: select_base_addr = seven_addr;
+      4'd8: select_base_addr = eight_addr;
+      4'd9: select_base_addr = nine_addr;
+      default: select_base_addr = zero_addr;
+    endcase
+  end
+endfunction
+
+
+
 assign fall_water_region =
           pixel_y >= (drop_water_vpos<<1) && 
           pixel_y < ((drop_water_vpos + WATER_H)<<1) &&
@@ -703,6 +1338,7 @@ assign fall_coke_region =
           pixel_y >= (drop_coke_vpos<<1) && 
           pixel_y < ((drop_coke_vpos + COKE_H)<<1) &&
           (pixel_x + 23) >= drop_coke_pos && pixel_x < (drop_coke_pos + 1);
+
 
 always @ (posedge clk) begin
   if (~reset_n)
@@ -737,6 +1373,215 @@ always @ (posedge clk) begin
       pixel_juice_addr2 <= juice_addr2+((pixel_y>>1)-vending_juice_vpos)*JUICE_W +
                     ((pixel_x +(JUICE_W*2-1)-vending_juice_pos)>>1);
     end
+
+    if (select_top_region) begin
+      pixel_select_top_addr <= select_top_addr + ((pixel_y >> 1) - select_top_vpos) * BLOCK_W +
+                            ((pixel_x + (BLOCK_W * 2 - 1) - select_top_pos) >> 1);
+    end
+    if (select_region1) begin
+      pixel_select_addr <= select_addr + ((pixel_y >> 1) - select_vpos1) * BLOCK_W +
+                            ((pixel_x + (BLOCK_W * 2 - 1) - select_pos1) >> 1);
+    end
+    if (select_region2) begin
+      pixel_select_addr <= select_addr + 
+                            ((pixel_y >> 1) - select_vpos2) * BLOCK_W +
+                            ((pixel_x + (BLOCK_W * 2 - 1) - select_pos2) >> 1);
+    end
+
+    if (money_top_region) begin
+      pixel_money_top_addr <= money_top_addr+((pixel_y >> 1) - money_top_vpos) * BLOCK_W +
+                            ((pixel_x + (BLOCK_W * 2 - 1) - money_top_pos) >> 1);
+    end
+    if (money_region1) begin
+      pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos1) * BLOCK_W +
+                            ((pixel_x + (BLOCK_W * 2 - 1) - money_pos1) >> 1);
+    end
+    if (money_region2) begin
+      pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos2) * BLOCK_W +
+                            ((pixel_x + (BLOCK_W * 2 - 1) - money_pos2) >> 1);
+    end
+
+    if (rest_region) begin
+      pixel_rest_addr <=  ((pixel_y >> 1) - rest_vpos) * SM_BLOCK_W +
+                            ((pixel_x + (SM_BLOCK_W * 2 - 1) - sm_block_pos) >> 1);
+    end
+    
+    if (num0_1_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_one) + 
+                            ((pixel_y >> 1) - num0_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_1_pos) >> 1);
+    end
+
+    if (num0_2_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_five) + 
+                            ((pixel_y >> 1) - num0_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_2_pos) >> 1);
+    end
+
+    if (num0_3_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_ten) + 
+                            ((pixel_y >> 1) - num0_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_3_pos) >> 1);
+    end
+
+    if (num0_4_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_hundred) + 
+                            ((pixel_y >> 1) - num0_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_4_pos) >> 1);
+    end
+
+    if (num1_1_region) begin
+      pixel_num_addr <= select_base_addr(used_water_num) + 
+                            ((pixel_y >> 1) - num1_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_1_pos) >> 1);
+    end
+    if (num1_2_region) begin
+      pixel_num_addr <= select_base_addr(water_num) + 
+                            ((pixel_y >> 1) - num1_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_2_pos) >> 1);
+    end
+    if (num1_3_region) begin
+      pixel_num_addr <= select_base_addr(used_juice_num) + 
+                            ((pixel_y >> 1) - num1_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_3_pos) >> 1);
+    end
+    if (num1_4_region) begin
+      pixel_num_addr <= select_base_addr(juice_num) + 
+                            ((pixel_y >> 1) - num1_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_4_pos) >> 1);
+    end
+    if (num1_5_region) begin
+      pixel_num_addr <= select_base_addr(used_tea_num) + 
+                            ((pixel_y >> 1) - num1_5_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_5_pos) >> 1);
+    end
+    if (num1_6_region) begin
+      pixel_num_addr <= select_base_addr(tea_num) + 
+                            ((pixel_y >> 1) - num1_6_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_6_pos) >> 1);
+    end
+    if (num1_7_region) begin
+      pixel_num_addr <= select_base_addr(used_cola_num) + 
+                            ((pixel_y >> 1) - num1_7_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_7_pos) >> 1);
+    end
+    if (num1_8_region) begin
+      pixel_num_addr <= select_base_addr(cola_num) + 
+                            ((pixel_y >> 1) - num1_8_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num1_8_pos) >> 1);
+    end
+    if (num2_1_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_one) + 
+                            ((pixel_y >> 1) - num2_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_1_pos) >> 1);
+    end
+    if (num2_2_region) begin
+      pixel_num_addr <= select_base_addr(coin_one) + 
+                            ((pixel_y >> 1) - num2_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_2_pos) >> 1);
+    end
+    if (num2_3_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_five) + 
+                            ((pixel_y >> 1) - num2_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_3_pos) >> 1);
+    end
+    if (num2_4_region) begin
+      pixel_num_addr <= select_base_addr(coin_five) + 
+                            ((pixel_y >> 1) - num2_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_4_pos) >> 1);
+    end
+    if (num2_5_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_ten) + 
+                            ((pixel_y >> 1) - num2_5_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_5_pos) >> 1);
+    end
+    if (num2_6_region) begin
+      pixel_num_addr <= select_base_addr(coin_ten) + 
+                            ((pixel_y >> 1) - num2_6_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_6_pos) >> 1);
+    end
+    if (num2_7_region) begin
+      pixel_num_addr <= select_base_addr(used_coin_hundred) + 
+                            ((pixel_y >> 1) - num2_7_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_7_pos) >> 1);
+    end
+    if (num2_8_region) begin
+      pixel_num_addr <= select_base_addr(coin_hundred) + 
+                            ((pixel_y >> 1) - num2_8_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num2_8_pos) >> 1);
+    end
+    if (num3_1_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_one) + 
+                            ((pixel_y >> 1) - num3_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_1_pos) >> 1);
+    end
+    if (num3_2_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_five) + 
+                            ((pixel_y >> 1) - num3_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_2_pos) >> 1);
+    end
+    if (num3_3_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_ten) + 
+                            ((pixel_y >> 1) - num3_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_3_pos) >> 1);
+    end
+    if (num3_4_region) begin
+      pixel_num_addr <= select_base_addr(ret_coin_hundred) + 
+                            ((pixel_y >> 1) - num3_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num3_4_pos) >> 1);
+    end
+    // if (num4_1_region) begin
+    //   pixel_num_addr <= select_base_addr() + 
+    //                         ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
+    // end
+    // if (num4_2_region) begin
+    //   pixel_num_addr <= select_base_addr() +
+    //                         ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
+    // end
+    // if (num4_3_region) begin
+    //   pixel_num_addr <= select_base_addr() +
+    //                         ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
+    // end
+    // if (num4_4_region) begin
+    //   pixel_num_addr <= select_base_addr() +
+    //                         ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
+    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
+    // end
+    if (slash1_1_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_1_pos) >> 1);
+    end
+    if (slash1_2_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_2_pos) >> 1);
+    end
+    if (slash1_3_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_3_pos) >> 1);
+    end
+    if (slash1_4_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_4_pos) >> 1);
+    end
+    if (slash2_1_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_1_pos) >> 1);
+    end
+    if (slash2_2_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_2_pos) >> 1);
+    end
+    if (slash2_3_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_3_pos) >> 1);
+    end
+    if (slash2_4_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_4_pos) >> 1);
+
     if (vending_tea_region) begin
       pixel_tea_addr2 <= ((pixel_y>>1)-vending_tea_vpos)*TEA_W +
                     ((pixel_x +(TEA_W*2-1)-vending_tea_pos)>>1);
@@ -786,10 +1631,95 @@ always @(*) begin
       rgb_next = data_coke_out2;
     
     else if (vend_region && data_vend_out != 12'h0f0)
+      rgb_next = data_vend_out;
+      // rgb_next = 12'hf00;
+    // else if (fish2_region && data_f2_out != 12'h0f0)
+    //   rgb_next = data_f2_out;
+    // else if (fish3_region && data_f3_out != 12'h0f0)
+    //   rgb_next = data_f3_out;
+    // if (vend_region)
+    //   // rgb_next = data_vend_out;
+    //   rgb_next = 12'hf00;
+    else if (num0_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num0_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num0_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num0_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+
+    else if (num1_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_5_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_6_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_7_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num1_8_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_5_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_6_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_7_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_8_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num3_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num4_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    
+    else if (slash1_1_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash1_2_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash1_3_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash1_4_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_1_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_2_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_3_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_4_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (vend_region && data_vend_out != 12'h0f0) begin
       if(usr_sw[1])
         rgb_next = data_vend_out;
       else
         rgb_next = 12'hfff - data_vend_out;
+    end
     else if (block1_region)
       rgb_next = 12'h555;
     else if (block2_region)
@@ -798,6 +1728,23 @@ always @(*) begin
       rgb_next = 12'h555;
     else if (block4_region)
       rgb_next = 12'h555;
+    
+    else if (rest_region && data_rest_out != 12'h0f0)
+      rgb_next = data_rest_out;
+
+    else if (select_top_region && data_select_top_out != 12'h0f0)
+      rgb_next = data_select_top_out;
+    else if (select_region1 && data_select_out != 12'h0f0)
+      rgb_next = data_select_out;
+    else if (select_region2 && data_select_out != 12'h0f0)
+      rgb_next = data_select_out;
+    else if (money_top_region && data_money_top_out != 12'h0f0)
+      rgb_next = data_money_top_out;
+    else if (money_region1 && data_money_out != 12'h0f0)
+      rgb_next = data_money_out;
+    else if (money_region2 && data_money_out != 12'h0f0)
+      rgb_next = data_money_out;
+
     else if (sm_block_region)
       rgb_next = 12'h555;
     else begin
