@@ -629,7 +629,7 @@ always @(*) begin // FSM next-state logic
       S_MAIN_PAY:
         P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_CALC;
       S_MAIN_CALC:
-        P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_POOL_DROP;
+        P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_DROP;
       S_MAIN_DROP:
         P_next = (btn_pressed[3]) ? S_MAIN_DROP : S_MAIN_INIT;
       default:
@@ -665,7 +665,7 @@ end
 // ------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------
-// S_MAIN_CALC ()
+// S_MAIN_CALC
 
 // ------------------------------------------------------------------------
 
