@@ -36,32 +36,42 @@ module lab10(
 );
 
 // Declare system variables
-reg  [35:0] fish1_clock;
-reg  [35:0] fish2_clock;
-reg  [35:0] fish3_clock;
-wire [9:0]  fish1_pos;
-wire [9:0]  fish2_pos;
-wire [9:0]  fish3_pos;
-wire        fish1_region;
-wire        fish2_region;
-wire        fish3_region;
+// reg  [35:0] fish1_clock;
+// reg  [35:0] fish2_clock;
+// reg  [35:0] fish3_clock;
+// wire [9:0]  fish1_pos;
+// wire [9:0]  fish2_pos;
+// wire [9:0]  fish3_pos;
+// wire        fish1_region;
+// wire        fish2_region;
+// wire        fish3_region;
+
+wire [9:0]  vend_pos;
+wire        vend_region;
+
+wire [9:0]  drop_pos;
+wire        drop_region;
 
 // declare SRAM control signals
 wire [20:0] sram_f1_addr;
 wire [11:0] data_f1_in;
 wire [11:0] data_f1_out;
 
-wire [20:0] sram_f2_addr;
-wire [11:0] data_f2_in;
-wire [11:0] data_f2_out;
+// wire [20:0] sram_f2_addr;
+// wire [11:0] data_f2_in;
+// wire [11:0] data_f2_out;
 
-wire [20:0] sram_f3_addr;
-wire [11:0] data_f3_in;
-wire [11:0] data_f3_out;
+// wire [20:0] sram_f3_addr;
+// wire [11:0] data_f3_in;
+// wire [11:0] data_f3_out;
 
-wire [20:0] sram_bg_addr;
-wire [11:0] data_bg_in;
-wire [11:0] data_bg_out;
+// wire [20:0] sram_bg_addr;
+// wire [11:0] data_bg_in;
+// wire [11:0] data_bg_out;
+
+wire [20:0] sram_vend_addr;
+wire [11:0] data_vend_in;
+wire [11:0] data_vend_out;
 
 wire        sram_we, sram_en;
 
@@ -80,10 +90,13 @@ reg  [11:0] rgb_reg;  // RGB value for the current pixel
 reg  [11:0] rgb_next; // RGB value for the next pixel
   
 // Application-specific VGA signals
-reg  [20:0] pixel_f1_addr;
-reg  [20:0] pixel_f2_addr;
-reg  [20:0] pixel_f3_addr;
-reg  [20:0] pixel_bg_addr;
+// reg  [20:0] pixel_f1_addr;
+// reg  [20:0] pixel_f2_addr;
+// reg  [20:0] pixel_f3_addr;
+// reg  [20:0] pixel_bg_addr;
+
+reg  [20:0] pixel_vend_addr;
+reg  [20:0] pixel_drop_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -91,53 +104,63 @@ localparam VBUF_H = 240; // video buffer height
 
 // Set parameters for the fish images
 // localparam fish1_vpos   = 32; // Vertical location of the fish in the sea image.
-localparam FISH1_W      = 64; // Width of the fish.
-localparam FISH1_H      = 32; // Height of the fish.
-reg [20:0] fish1_addr[0:7];   // Address array for up to 8 fish images.
+// localparam FISH1_W      = 64; // Width of the fish.
+// localparam FISH1_H      = 32; // Height of the fish.
+// reg [20:0] fish1_addr[0:7];   // Address array for up to 8 fish images.
 
-// localparam fish2_vpos   = 40;
-localparam FISH2_W      = 64;
-localparam FISH2_H      = 44;
-reg [20:0] fish2_addr[0:3];
+// // localparam fish2_vpos   = 40;
+// localparam FISH2_W      = 64;
+// localparam FISH2_H      = 44;
+// reg [20:0] fish2_addr[0:3];
 
-// localparam fish3_vpos   = 128;
-localparam FISH3_W      = 64;
-localparam FISH3_H      = 72;
-reg [20:0] fish3_addr[0:3];
+// // localparam fish3_vpos   = 128;
+// localparam FISH3_W      = 64;
+// localparam FISH3_H      = 72;
+// reg [20:0] fish3_addr[0:3];
+
+localparam vend_vpos   = 10;
+localparam VEND_W      = 100;
+localparam VEND_H      = 170;
+reg [20:0] vend_addr;
+
+localparam drop_vpos   = 145;
+localparam DROP_W      = 56;
+localparam DROP_H      = 13;
+reg [20:0] drop_addr;
 
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
 
-reg [2:0] speed_level[0:2];
+// reg [2:0] speed_level[0:2];
 
-reg [2:0] current_fish = 3'd0;  
+// reg [2:0] current_fish = 3'd0;
 
-reg [7:0] fish1_vpos = 8'd40; // Vertical position of fish1
-reg [7:0] fish2_vpos = 8'd80; // Vertical position of fish2
-reg [7:0] fish3_vpos = 8'd120; // Vertical position of fish3
+// reg [7:0] fish1_vpos = 8'd40; // Vertical position of fish1
+// reg [7:0] fish2_vpos = 8'd80; // Vertical position of fish2
+// reg [7:0] fish3_vpos = 8'd120; // Vertical position of fish3
 
 // Direction: 0 = left, 1 = right
-reg fish1_dir;
-reg fish2_dir;
-reg fish3_dir;
+// reg fish1_dir;
+// reg fish2_dir;
+// reg fish3_dir;
 
-reg [3:0] now;
+// reg [3:0] now;
 
-reg [4:0] pwm_counter;
+// reg [4:0] pwm_counter;
 
 // Initializes the fish images starting addresses.
 // Note: System Verilog has an easier way to initialize an array,
 //       but we are using Verilog 2001 :(
-integer k;
-initial begin
-  for (k = 0; k < 8; k = k + 1) begin
-    fish1_addr[k] = VBUF_W * VBUF_H + FISH1_W * FISH1_H * k;
-  end
-  for (k = 0; k < 4; k = k + 1) begin
-    fish2_addr[k] = FISH2_W * FISH2_H * k;
-    fish3_addr[k] = FISH2_W * FISH2_H * 4 + FISH3_W * FISH3_H * k;
-  end
-end
+// integer k;
+// initial begin
+//   for (k = 0; k < 8; k = k + 1) begin
+//     fish1_addr[k] = VBUF_W * VBUF_H + FISH1_W * FISH1_H * k;
+//   end
+//   for (k = 0; k < 4; k = k + 1) begin
+//     fish2_addr[k] = FISH2_W * FISH2_H * k;
+//     fish3_addr[k] = FISH2_W * FISH2_H * 4 + FISH3_W * FISH3_H * k;
+//   end
+// end
 
 // Instiantiate the VGA sync signal generator
 vga_sync vs0(
@@ -294,10 +317,10 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
 
-// sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VBUF_W*VBUF_H+FISH1_W*FISH1_H*8), .FILE("images.mem"))
-//   ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
-//           .addr_1(sram_bg_addr), .data_i_1(data_bg_in), .data_o_1(data_bg_out),
-//           .addr_2(sram_f1_addr), .data_i_2(data_f1_in), .data_o_2(data_f1_out));
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images.mem"))
+  ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
+          .addr_2(sram_f1_addr), .data_i_2(data_f1_in), .data_o_2(data_f1_out));
 
 // sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(FISH2_W*FISH2_H*4+FISH3_W*FISH3_H*4), .FILE("images2.mem"))
 //   ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
@@ -320,11 +343,15 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 
 // assign sram_bg_addr = pixel_bg_addr;
 // assign data_bg_in = 12'h000;
+
+assign sram_vend_addr = pixel_vend_addr;
+assign data_vend_in = 12'h000;
+
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
 // VGA color pixel generator
-// assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
+assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 
 // ------------------------------------------------------------------------
 // An animation clock for the motion of the fish, upper bits of the
@@ -343,6 +370,9 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // assign fish1_pos = fish1_pos_reg;
 // assign fish2_pos = fish2_pos_reg;
 // assign fish3_pos = fish3_pos_reg;
+
+assign vend_pos = 220;
+assign drop_pos = 176;
 
 // always @(*) begin
 //   case (speed_level[0])
@@ -525,6 +555,14 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 //           pixel_y >= (fish3_vpos<<1) && pixel_y < (fish3_vpos+FISH3_H)<<1 &&
 //           (pixel_x + 127) >= fish3_pos && pixel_x < fish3_pos + 1;
 
+assign vend_region =
+          pixel_y >= (vend_vpos<<1) && pixel_y < (vend_vpos+VEND_H)<<1 &&
+          (pixel_x + 199) >= vend_pos && pixel_x < vend_pos + 1;
+
+assign drop_region =
+          pixel_y >= (drop_vpos<<1) && pixel_y < (drop_vpos+DROP_H)<<1 &&
+          (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
+
 // always @ (posedge clk) begin
 // if (~reset_n) begin
 //     pixel_f1_addr <= 0;
@@ -572,28 +610,44 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 //     pixel_bg_addr <= (pixel_y >> 1) * VBUF_W + (pixel_x >> 1);
 // end
 
+always @ (posedge clk) begin
+  if (~reset_n)
+    pixel_vend_addr <= 0;
+  else
+    if (vend_region) begin
+      pixel_vend_addr <= ((pixel_y>>1)-vend_vpos)*VEND_W +
+                    ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
+    end
+end
+
 // End of the AGU code.
 // ------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------
 // Send the video data in the sram to the VGA controller
-// always @(posedge clk) begin
-//   if (pixel_tick) rgb_reg <= rgb_next;
-// end
+always @(posedge clk) begin
+  if (pixel_tick) rgb_reg <= rgb_next;
+end
 
-// always @(*) begin
-//   if (~video_on)
-//     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
-//   else
-//     if (fish1_region && data_f1_out != 12'h0f0)
-//       rgb_next = data_f1_out;
-//     else if (fish2_region && data_f2_out != 12'h0f0)
-//       rgb_next = data_f2_out;
-//     else if (fish3_region && data_f3_out != 12'h0f0)
-//       rgb_next = data_f3_out;
-//     else
-//       rgb_next = data_bg_out;
-// end
+always @(*) begin
+  if (~video_on)
+    rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
+  else
+    if (drop_region)
+      rgb_next = 12'hf00;
+    else if (vend_region && data_vend_out != 12'h0f0)
+      rgb_next = data_vend_out;
+      // rgb_next = 12'hf00;
+    // else if (fish2_region && data_f2_out != 12'h0f0)
+    //   rgb_next = data_f2_out;
+    // else if (fish3_region && data_f3_out != 12'h0f0)
+    //   rgb_next = data_f3_out;
+    // if (vend_region)
+    //   // rgb_next = data_vend_out;
+    //   rgb_next = 12'hf00;
+    else
+      rgb_next = 12'hed5;
+end
 // End of the video data display code.
 // ------------------------------------------------------------------------
 
