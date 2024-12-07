@@ -206,6 +206,17 @@ wire        slash2_3_region;
 wire [9:0]  slash2_4_pos;
 wire        slash2_4_region;
 
+wire [9:0] block1_pos;
+wire       block1_region;
+
+wire [9:0] block2_pos;
+wire       block2_region;
+
+wire [9:0] block3_pos;
+wire       block3_region;
+
+wire [9:0] block4_pos;
+wire       block4_region;
 
 wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
