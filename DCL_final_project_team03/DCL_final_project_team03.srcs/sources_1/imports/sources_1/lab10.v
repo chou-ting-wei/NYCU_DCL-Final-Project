@@ -40,14 +40,6 @@ reg  [31:0] water_drop_clock;
 reg  [31:0] tea_drop_clock;
 reg  [31:0] juice_drop_clock;
 reg  [31:0] coke_drop_clock;
-// reg  [35:0] fish2_clock;
-// reg  [35:0] fish3_clock;
-// wire [9:0]  fish1_pos;
-// wire [9:0]  fish2_pos;
-// wire [9:0]  fish3_pos;
-// wire        fish1_region;
-// wire        fish2_region;
-// wire        fish3_region;
 
 wire [9:0]  vend_pos;
 wire        vend_region;
@@ -71,18 +63,6 @@ wire        fall_coke_region;
 wire [20:0] sram_f1_addr;
 wire [11:0] data_f1_in;
 wire [11:0] data_f1_out;
-
-// wire [20:0] sram_f2_addr;
-// wire [11:0] data_f2_in;
-// wire [11:0] data_f2_out;
-
-// wire [20:0] sram_f3_addr;
-// wire [11:0] data_f3_in;
-// wire [11:0] data_f3_out;
-
-// wire [20:0] sram_bg_addr;
-// wire [11:0] data_bg_in;
-// wire [11:0] data_bg_out;
 
 wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
@@ -121,10 +101,6 @@ reg  [11:0] rgb_reg;  // RGB value for the current pixel
 reg  [11:0] rgb_next; // RGB value for the next pixel
   
 // Application-specific VGA signals
-// reg  [20:0] pixel_f1_addr;
-// reg  [20:0] pixel_f2_addr;
-// reg  [20:0] pixel_f3_addr;
-// reg  [20:0] pixel_bg_addr;
 
 reg  [20:0] pixel_vend_addr;
 reg  [20:0] pixel_drop_addr;
@@ -137,21 +113,7 @@ reg  [20:0] pixel_coke_addr;
 localparam VBUF_W = 320; // video buffer width
 localparam VBUF_H = 240; // video buffer height
 
-// Set parameters for the fish images
-// localparam fish1_vpos   = 32; // Vertical location of the fish in the sea image.
-// localparam FISH1_W      = 64; // Width of the fish.
-// localparam FISH1_H      = 32; // Height of the fish.
-// reg [20:0] fish1_addr[0:7];   // Address array for up to 8 fish images.
-
-// // localparam fish2_vpos   = 40;
-// localparam FISH2_W      = 64;
-// localparam FISH2_H      = 44;
-// reg [20:0] fish2_addr[0:3];
-
-// // localparam fish3_vpos   = 128;
-// localparam FISH3_W      = 64;
-// localparam FISH3_H      = 72;
-// reg [20:0] fish3_addr[0:3];
+// Set parameters for the images
 
 localparam vend_vpos   = 10;
 localparam VEND_W      = 100;
@@ -182,39 +144,14 @@ reg [20:0] coke_addr;
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
 
-// reg [2:0] speed_level[0:2];
-
-// reg [2:0] current_fish = 3'd0;
-
 reg [9:0] water_vpos;
 reg [9:0] tea_vpos;
 reg [9:0] juice_vpos;
 reg [9:0] coke_vpos;
-// reg [7:0] fish2_vpos = 8'd80; // Vertical position of fish2
-// reg [7:0] fish3_vpos = 8'd120; // Vertical position of fish3
-// Direction: 0 = left, 1 = right
-// reg fish1_dir;
-// reg fish2_dir;
-// reg fish3_dir;
-
-// reg [3:0] now;
-
-// reg [4:0] pwm_counter;
 
 // Initializes the fish images starting addresses.
 // Note: System Verilog has an easier way to initialize an array,
 //       but we are using Verilog 2001 :(
-// integer k;
-// initial begin
-//   for (k = 0; k < 8; k = k + 1) begin
-//     fish1_addr[k] = VBUF_W * VBUF_H + FISH1_W * FISH1_H * k;
-//   end
-//   for (k = 0; k < 4; k = k + 1) begin
-//     fish2_addr[k] = FISH2_W * FISH2_H * k;
-//     fish3_addr[k] = FISH2_W * FISH2_H * 4 + FISH3_W * FISH3_H * k;
-//   end
-// end
-
 // Instiantiate the VGA sync signal generator
 vga_sync vs0(
   .clk(vga_clk), .reset(~reset_n), .oHS(VGA_HSYNC), .oVS(VGA_VSYNC),
@@ -261,111 +198,6 @@ end
 
 assign btn_pressed = (btn_level & ~prev_btn_level);
 
-// reg fish1_speed_chg;
-// reg fish2_speed_chg;
-// reg fish3_speed_chg;
-
-// always @(posedge clk or negedge reset_n) begin
-//   if (~reset_n) begin
-//     speed_level[0] <= 3'd0;
-//     speed_level[1] <= 3'd1;
-//     speed_level[2] <= 3'd2;
-//     current_fish <= 3'd0;
-//     fish1_speed_chg <= 0;
-//     fish2_speed_chg <= 0;
-//     fish3_speed_chg <= 0;
-//   end else begin
-//     // Handle Speed Control (Button0)
-//     if (btn_pressed[0]) begin
-//       if (speed_level[current_fish] < 3'd4)
-//         speed_level[current_fish] <= speed_level[current_fish] + 1'b1;
-//       else
-//         speed_level[current_fish] <= 3'd0;
-//       if (current_fish == 3'd0)
-//         fish1_speed_chg <= 1;
-//       if (current_fish == 3'd1)
-//         fish2_speed_chg <= 1;
-//       if (current_fish == 3'd2)
-//         fish3_speed_chg <= 1;
-//     end
-
-//     if (fish1_speed_chg)
-//       fish1_speed_chg <= 0;
-//     if (fish2_speed_chg)
-//       fish2_speed_chg <= 0;
-//     if (fish3_speed_chg)
-//       fish3_speed_chg <= 0;
-    
-//     // Handle Fish Selection (Button3)
-//     if (btn_pressed[3]) begin
-//       if (current_fish < 3'd2)
-//         current_fish <= current_fish + 1'b1;
-//       else
-//         current_fish <= 3'd0;
-//     end
-//   end
-// end
-
-// always @(posedge clk or negedge reset_n) begin
-//   if (~reset_n) begin
-//     // Reset to initial vertical positions
-//     fish1_vpos <= 8'd40;
-//     fish2_vpos <= 8'd80;
-//     fish3_vpos <= 8'd120;
-//   end else begin
-//     // Handle Fish Raising (Button1)
-//     if (btn_pressed[1]) begin
-//       if (current_fish == 3'd0 && fish1_vpos > 8'd0)
-//         fish1_vpos <= fish1_vpos - 8'd4;
-//       if (current_fish == 3'd1 && fish2_vpos > 8'd0)
-//         fish2_vpos <= fish2_vpos - 8'd4;
-//       if (current_fish == 3'd2 && fish3_vpos > 8'd0)
-//         fish3_vpos <= fish3_vpos - 8'd4;
-//     end
-    
-//     // Handle Fish Lowering (Button2)
-//     if (btn_pressed[2]) begin
-//       if (current_fish == 3'd0 && fish1_vpos < (VBUF_H - FISH1_H))
-//         fish1_vpos <= fish1_vpos + 8'd4;
-//       if (current_fish == 3'd1 && fish2_vpos < (VBUF_H - FISH2_H))
-//         fish2_vpos <= fish2_vpos + 8'd4;
-//       if (current_fish == 3'd2 && fish3_vpos < (VBUF_H - FISH3_H))
-//         fish3_vpos <= fish3_vpos + 8'd4;
-//     end
-//   end
-// end
-
-// always @(*) begin
-//   if (current_fish == 3'd0) begin
-//     now[2:0] = 3'b001;
-//   end else if (current_fish == 3'd1) begin
-//     now[2:0] = 3'b010;
-//   end else if (current_fish == 3'd2) begin
-//     now[2:0] = 3'b100;
-//   end else begin
-//     now[2:0] = 3'b000;
-//   end
-
-//   case (speed_level[current_fish])
-//     3'd0: now[3] = 1'b0;
-//     3'd1: now[3] = (pwm_counter < 5) ? 1'b1 : 1'b0;
-//     3'd2: now[3] = (pwm_counter < 10) ? 1'b1 : 1'b0;
-//     3'd3: now[3] = (pwm_counter < 15) ? 1'b1 : 1'b0;
-//     3'd4: now[3] = 1'b1;
-//     default: now[3] = 1'b0;
-//   endcase
-// end
-
-
-// assign usr_led = now;
-
-// always @(posedge clk or negedge reset_n) begin
-//     if (!reset_n)
-//         pwm_counter <= 0;
-//     else
-//         pwm_counter <= (pwm_counter == 19) ? 0 : pwm_counter + 1;
-// end
-
 // ------------------------------------------------------------------------
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
@@ -379,22 +211,6 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H + TEA_W*TEA_H
   ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_water_addr), .data_i_1(data_water_in), .data_o_1(data_water_out),
           .addr_2(sram_tea_addr), .data_i_2(data_tea_in), .data_o_2(data_tea_out));
-
-// assign sram_we = usr_sw[0]; // In this demo, we do not write the SRAM. However, if
-//                                   // you set 'sram_we' to 0, Vivado fails to synthesize
-//                                   // ram0 as a BRAM -- this is a bug in Vivado.
-// assign sram_en = 1;               // Here, we always enable the SRAM block.
-// assign sram_f1_addr = pixel_f1_addr;
-// assign data_f1_in = 12'h000; // SRAM is read-only so we tie inputs to zeros.
-
-// assign sram_f2_addr = pixel_f2_addr;
-// assign data_f2_in = 12'h000;
-
-// assign sram_f3_addr = pixel_f3_addr;
-// assign data_f3_in = 12'h000;
-
-// assign sram_bg_addr = pixel_bg_addr;
-// assign data_bg_in = 12'h000;
 
 assign sram_vend_addr = pixel_vend_addr;
 assign data_vend_in = 12'h000;
@@ -418,18 +234,6 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 // fish clock is the x position of the fish on the VGA screen.
 // Note that the fish will move one screen pixel every 2^20 clock cycles,
 // or 10.49 msec
-// assign pos = fish_clock[31:20]; // the x position of the right edge of the fish image
-                                // in the 640x480 VGA screen
-// reg [9:0] fish1_pos_reg;
-// reg [9:0] fish2_pos_reg;
-// reg [9:0] fish3_pos_reg;
-// reg [10:0] fish1_wid;
-// reg [10:0] fish2_wid;
-// reg [10:0] fish3_wid;
-
-// assign fish1_pos = fish1_pos_reg;
-// assign fish2_pos = fish2_pos_reg;
-// assign fish3_pos = fish3_pos_reg;
 
 assign vend_pos = 220;
 assign drop_pos = 176;
@@ -438,92 +242,6 @@ assign water_pos = water_pos_reg;
 assign tea_pos = 164; // right bound
 assign juice_pos = 152; // right bound
 assign coke_pos = 144; // right bound
-// always @(*) begin
-//   case (speed_level[0])
-//     3'd0: begin
-//       fish1_pos_reg = fish1_clock[31:22];
-//       fish1_wid = fish1_clock[33:23];
-//     end
-//     3'd1: begin
-//       fish1_pos_reg = fish1_clock[30:21];
-//       fish1_wid = fish1_clock[32:22];
-//     end
-//     3'd2: begin
-//       fish1_pos_reg = fish1_clock[29:20];
-//       fish1_wid = fish1_clock[31:21];
-//     end
-//     3'd3: begin
-//       fish1_pos_reg = fish1_clock[28:19];
-//       fish1_wid = fish1_clock[30:20];
-//     end
-//     3'd4: begin
-//       fish1_pos_reg = fish1_clock[27:18];
-//       fish1_wid = fish1_clock[29:19];
-//     end
-//     default: begin
-//       fish1_pos_reg = fish1_clock[31:22];
-//       fish1_wid = fish1_clock[33:23];
-//     end
-//   endcase
-// end
-
-// always @(*) begin
-//   case (speed_level[1])
-//     3'd0: begin
-//       fish2_pos_reg = fish2_clock[31:22];
-//       fish2_wid = fish2_clock[33:23];
-//     end
-//     3'd1: begin
-//       fish2_pos_reg = fish2_clock[30:21];
-//       fish2_wid = fish2_clock[32:22];
-//     end
-//     3'd2: begin
-//       fish2_pos_reg = fish2_clock[29:20];
-//       fish2_wid = fish2_clock[31:21];
-//     end
-//     3'd3: begin
-//       fish2_pos_reg = fish2_clock[28:19];
-//       fish2_wid = fish2_clock[30:20];
-//     end
-//     3'd4: begin
-//       fish2_pos_reg = fish2_clock[27:18];
-//       fish2_wid = fish2_clock[29:19];
-//     end
-//     default: begin
-//       fish2_pos_reg = fish2_clock[31:22];
-//       fish2_wid = fish2_clock[33:23];
-//     end
-//   endcase
-// end
-
-// always @(*) begin
-//   case (speed_level[2])
-//     3'd0: begin
-//       fish3_pos_reg = fish3_clock[31:22];
-//       fish3_wid = fish3_clock[33:23];
-//     end
-//     3'd1: begin
-//       fish3_pos_reg = fish3_clock[30:21];
-//       fish3_wid = fish3_clock[32:22];
-//     end
-//     3'd2: begin
-//       fish3_pos_reg = fish3_clock[29:20];
-//       fish3_wid = fish3_clock[31:21];
-//     end
-//     3'd3: begin
-//       fish3_pos_reg = fish3_clock[28:19];
-//       fish3_wid = fish3_clock[30:20];
-//     end
-//     3'd4: begin
-//       fish3_pos_reg = fish3_clock[27:18];
-//       fish3_wid = fish3_clock[29:19];
-//     end
-//     default: begin
-//       fish3_pos_reg = fish3_clock[31:22];
-//       fish3_wid = fish3_clock[33:23];
-//     end
-//   endcase
-// end
 
 // water drop clock control
 reg water_drop_speed;
@@ -804,77 +522,6 @@ always @(posedge clk or negedge reset_n) begin
     coke_pos_reg <= 126 + offset;
   end
 end
-// always @(posedge clk) begin
-//   if (~reset_n) begin
-//     fish1_clock <= 0;
-//     fish2_clock <= 0;
-//     fish3_clock <= 0;
-//     fish1_dir <= 1;
-//     fish2_dir <= 1;
-//     fish3_dir <= 1;
-//   end else begin
-//     if (fish1_speed_chg) begin
-//       fish1_clock <= 0;
-//       fish1_dir <= 1;
-//     end else begin
-//       if (fish1_dir) begin
-//         if (fish1_wid < VBUF_W)
-//           fish1_clock <= fish1_clock + 1;
-//         else begin
-//           fish1_dir <= 0;
-//           fish1_clock <= fish1_clock - 1;
-//         end
-//       end else begin
-//         if (fish1_wid > FISH1_W)
-//           fish1_clock <= fish1_clock - 1;
-//         else begin
-//           fish1_dir <= 1;
-//           fish1_clock <= fish1_clock + 1;
-//         end
-//       end
-//     end
-//     if (fish2_speed_chg) begin
-//       fish2_clock <= 0;
-//       fish2_dir <= 1;
-//     end else begin
-//       if (fish2_dir) begin
-//         if (fish2_wid < VBUF_W)
-//           fish2_clock <= fish2_clock + 1;
-//         else begin
-//           fish2_dir <= 0;
-//           fish2_clock <= fish2_clock - 1;
-//         end
-//       end else begin
-//         if (fish2_wid > FISH2_W)
-//           fish2_clock <= fish2_clock - 1;
-//         else begin
-//           fish2_dir <= 1;
-//           fish2_clock <= fish2_clock + 1;
-//         end
-//       end
-//     end
-//     if (fish3_speed_chg) begin
-//       fish3_clock <= 0;
-//       fish3_dir <= 1;
-//     end else begin
-//       if (fish3_dir) begin
-//         if (fish3_wid < VBUF_W)
-//           fish3_clock <= fish3_clock + 1;
-//         else begin
-//           fish3_dir <= 0;
-//           fish3_clock <= fish3_clock - 1;
-//         end
-//       end else begin
-//         if (fish3_wid > FISH3_W)
-//           fish3_clock <= fish3_clock - 1;
-//         else begin
-//           fish3_dir <= 1;
-//           fish3_clock <= fish3_clock + 1;
-//         end
-//       end
-//     end
-//   end
-// end
 // End of the animation clock code.
 // ------------------------------------------------------------------------
 
@@ -976,7 +623,6 @@ reg [1:0] refund_valid;
 // FSM of the main controller
 always @(posedge clk) begin
   if (~reset_n) begin
-    // P <= S_MAIN_ADDR; // read samples at 000 first
     P <= S_MAIN_INIT;
   end
   else begin
@@ -991,7 +637,6 @@ always @(*) begin // FSM next-state logic
       S_MAIN_BUY:
         P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_BUY;
       S_MAIN_PAY:
-        // P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
         P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
       S_MAIN_CALC: begin
         if (calc_done) begin
@@ -1014,12 +659,7 @@ always @(*) begin // FSM next-state logic
 end
 
 // FSM ouput logic: Fetch the data bus of sram[] for display
-// always @(posedge clk) begin
-//   if (~reset_n) begin
-//     user_data <= 8'b0;
-//   end
-//   else if (sram_en && !sram_we) user_data <= data_out;
-// end
+
 // End of the main controller
 
 // ------------------------------------------------------------------------
@@ -1317,7 +957,6 @@ localparam [1:0] FALL_WATER = 2'd0,
                  FALL_coke = 2'd3;
 
 // judge whether the item touched the bottom
-// need modify: initial drop y, bottom location
 always @(posedge clk) begin
   if(~reset_n) begin
     remain_water_num <= 0;
@@ -1377,11 +1016,6 @@ always @(posedge clk) begin
       what_item_fall <= FALL_coke;
     end
   end
-end
-
-// reset falling
-always @(posedge clk) begin
-  
 end
 
 // ------------------------------------------------------------------------
