@@ -2,6 +2,7 @@
 *.jou
 *.str
 *.cache
+*.runs
 
 .Xil
 .DS_Store
