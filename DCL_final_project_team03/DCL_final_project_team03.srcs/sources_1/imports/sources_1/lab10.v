@@ -676,16 +676,15 @@ localparam WATER_VALUE = 3,
            JUICE_VALUE = 10,
            COLA_VALUE = 20;
 
-// ------------------------------------------------------------------------
 // S_MAIN_BUY
 reg [8:0] total_amount; // item value
 reg [3:0] water_num, tea_num, juice_num, cola_num; // we have how many coin
 reg [3:0] used_water_num, used_tea_num, used_juice_num, used_cola_num; // we have used how many coin
 reg [1:0] item_pointer;
-localparam CHOOSE_WATER = 0,
-           CHOOSE_TEA = 1,
-           CHOOSE_JUICE = 2,
-           CHOOSE_COLA = 3;
+localparam [1:0] CHOOSE_WATER = 2'd0,
+                 CHOOSE_TEA = 2'd1,
+                 CHOOSE_JUICE = 2'd2,
+                 CHOOSE_COLA = 2'd3;
 
 // choose what item
 always @(posedge clk) begin
@@ -693,11 +692,11 @@ always @(posedge clk) begin
     item_pointer = 0;
   end
   else if (P == S_MAIN_BUY) begin
-    if (btn_pressed[0]) begin
-      item_pointer <= item_pointer - 1;
+    if (btn_pressed[1]) begin
+      item_pointer = item_pointer - 1;
     end
-    else if (btn_pressed[1]) begin
-      item_pointer <= item_pointer + 1;
+    else if (btn_pressed[0]) begin
+      item_pointer = item_pointer + 1;
     end
   end
 end
@@ -773,20 +772,20 @@ end
 reg [3:0] coin_one, coin_five, coin_ten, coin_hundred; // we have how many coin
 reg [3:0] used_coin_one, used_coin_five, used_coin_ten, used_coin_hundred; // we have used how many coin
 reg [1:0] coin_pointer; // choose what coin to pay
-localparam CHOOSE_ONE = 0,
-           CHOOSE_FIVE = 1,
-           CHOOSE_TEN = 2,
-           CHOOSE_HUNDRED = 3;
+localparam [1:0] CHOOSE_ONE = 2'd0,
+                 CHOOSE_FIVE = 2'd1,
+                 CHOOSE_TEN = 2'd2,
+                 CHOOSE_HUNDRED = 2'd3;
 
 always @(posedge clk) begin
   if (~reset_n)begin
     coin_pointer = 0;
   end
   else if (P == S_MAIN_PAY) begin
-    if (btn_pressed[0]) begin
+    if (btn_pressed[1]) begin
       coin_pointer <= coin_pointer - 1;
     end
-    else if (btn_pressed[1]) begin
+    else if (btn_pressed[0]) begin
       coin_pointer <= coin_pointer + 1;
     end
   end
@@ -798,10 +797,10 @@ always @(posedge clk) begin
     used_coin_five <= 0;
     used_coin_ten <= 0;
     used_coin_hundred <= 0;
-    coin_one <= 9;
-    coin_five <= 9;
-    coin_ten <= 9;
-    coin_hundred <= 9;
+    coin_one <= 7;
+    coin_five <= 4;
+    coin_ten <= 6;
+    coin_hundred <= 8;
   end
   else if (P == S_MAIN_PAY) begin
     if (btn_pressed[2]) begin
