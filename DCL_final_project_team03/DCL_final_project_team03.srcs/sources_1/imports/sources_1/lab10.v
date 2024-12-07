@@ -353,6 +353,15 @@ initial begin
   money_addr = 10*BLOCK_W;
 end
 
+
+localparam block1_vpos  = 10;
+localparam block2_vpos  = 67;
+localparam block3_vpos  = 124;
+localparam block4_vpos  = 181;
+
+localparam BLOCK_W      = 190;
+localparam BLOCK_H      = 50;
+
 localparam sm_block_vpos  = 190;
 localparam SM_BLOCK_W      = 100;
 localparam SM_BLOCK_H      = 40;
@@ -1344,251 +1353,252 @@ always @ (posedge clk) begin
   if (~reset_n)
     pixel_vend_addr <= 0;
   else begin
-    if (vend_region) begin
-      pixel_vend_addr <= ((pixel_y>>1) - vend_vpos)*VEND_W +
-                    ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
-    end
+      if (vend_region) begin
+        pixel_vend_addr <= ((pixel_y>>1) - vend_vpos)*VEND_W +
+                      ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
+      end
 
-    if (fall_water_region) begin
-      pixel_water_addr <= ((pixel_y>>1) - drop_water_vpos)*WATER_W +
-                    ((pixel_x + (WATER_W*2-1) - drop_water_pos)>>1);
-    end
-    if (fall_tea_region) begin
-      pixel_tea_addr <= ((pixel_y>>1) - drop_tea_vpos)*TEA_W +
-                    ((pixel_x + (TEA_W*2-1) - drop_tea_pos)>>1);
-    end
-    if (fall_juice_region) begin
-      pixel_juice_addr <= juice_addr2 + ((pixel_y>>1) - drop_juice_vpos)*JUICE_W +
-                    ((pixel_x + (JUICE_W*2-1) - drop_juice_pos)>>1);
-    end
-    if (fall_coke_region) begin
-      pixel_coke_addr <= coke_addr2 + ((pixel_y>>1) - drop_coke_vpos)*COKE_W +
-                    ((pixel_x + (COKE_W*2-1) - drop_coke_pos)>>1);
-    end
-    if (vending_water_region) begin
-      pixel_water_addr2 <= ((pixel_y>>1)-vending_water_vpos)*WATER_W +
-                    ((pixel_x +(WATER_W*2-1)-vending_water_pos)>>1);
-    end
-    if (vending_juice_region) begin
-      pixel_juice_addr2 <= juice_addr2+((pixel_y>>1)-vending_juice_vpos)*JUICE_W +
-                    ((pixel_x +(JUICE_W*2-1)-vending_juice_pos)>>1);
-    end
+      if (fall_water_region) begin
+        pixel_water_addr <= ((pixel_y>>1) - drop_water_vpos)*WATER_W +
+                      ((pixel_x + (WATER_W*2-1) - drop_water_pos)>>1);
+      end
+      if (fall_tea_region) begin
+        pixel_tea_addr <= ((pixel_y>>1) - drop_tea_vpos)*TEA_W +
+                      ((pixel_x + (TEA_W*2-1) - drop_tea_pos)>>1);
+      end
+      if (fall_juice_region) begin
+        pixel_juice_addr <= juice_addr2 + ((pixel_y>>1) - drop_juice_vpos)*JUICE_W +
+                      ((pixel_x + (JUICE_W*2-1) - drop_juice_pos)>>1);
+      end
+      if (fall_coke_region) begin
+        pixel_coke_addr <= coke_addr2 + ((pixel_y>>1) - drop_coke_vpos)*COKE_W +
+                      ((pixel_x + (COKE_W*2-1) - drop_coke_pos)>>1);
+      end
+      if (vending_water_region) begin
+        pixel_water_addr2 <= ((pixel_y>>1)-vending_water_vpos)*WATER_W +
+                      ((pixel_x +(WATER_W*2-1)-vending_water_pos)>>1);
+      end
+      if (vending_juice_region) begin
+        pixel_juice_addr2 <= juice_addr2+((pixel_y>>1)-vending_juice_vpos)*JUICE_W +
+                      ((pixel_x +(JUICE_W*2-1)-vending_juice_pos)>>1);
+      end
 
-    if (select_top_region) begin
-      pixel_select_top_addr <= select_top_addr + ((pixel_y >> 1) - select_top_vpos) * BLOCK_W +
-                            ((pixel_x + (BLOCK_W * 2 - 1) - select_top_pos) >> 1);
-    end
-    if (select_region1) begin
-      pixel_select_addr <= select_addr + ((pixel_y >> 1) - select_vpos1) * BLOCK_W +
-                            ((pixel_x + (BLOCK_W * 2 - 1) - select_pos1) >> 1);
-    end
-    if (select_region2) begin
-      pixel_select_addr <= select_addr + 
-                            ((pixel_y >> 1) - select_vpos2) * BLOCK_W +
-                            ((pixel_x + (BLOCK_W * 2 - 1) - select_pos2) >> 1);
-    end
+      if (select_top_region) begin
+        pixel_select_top_addr <= select_top_addr + ((pixel_y >> 1) - select_top_vpos) * BLOCK_W +
+                              ((pixel_x + (BLOCK_W * 2 - 1) - select_top_pos) >> 1);
+      end
+      if (select_region1) begin
+        pixel_select_addr <= select_addr + ((pixel_y >> 1) - select_vpos1) * BLOCK_W +
+                              ((pixel_x + (BLOCK_W * 2 - 1) - select_pos1) >> 1);
+      end
+      if (select_region2) begin
+        pixel_select_addr <= select_addr + 
+                              ((pixel_y >> 1) - select_vpos2) * BLOCK_W +
+                              ((pixel_x + (BLOCK_W * 2 - 1) - select_pos2) >> 1);
+      end
 
-    if (money_top_region) begin
-      pixel_money_top_addr <= money_top_addr+((pixel_y >> 1) - money_top_vpos) * BLOCK_W +
-                            ((pixel_x + (BLOCK_W * 2 - 1) - money_top_pos) >> 1);
-    end
-    if (money_region1) begin
-      pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos1) * BLOCK_W +
-                            ((pixel_x + (BLOCK_W * 2 - 1) - money_pos1) >> 1);
-    end
-    if (money_region2) begin
-      pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos2) * BLOCK_W +
-                            ((pixel_x + (BLOCK_W * 2 - 1) - money_pos2) >> 1);
-    end
+      if (money_top_region) begin
+        pixel_money_top_addr <= money_top_addr+((pixel_y >> 1) - money_top_vpos) * BLOCK_W +
+                              ((pixel_x + (BLOCK_W * 2 - 1) - money_top_pos) >> 1);
+      end
+      if (money_region1) begin
+        pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos1) * BLOCK_W +
+                              ((pixel_x + (BLOCK_W * 2 - 1) - money_pos1) >> 1);
+      end
+      if (money_region2) begin
+        pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos2) * BLOCK_W +
+                              ((pixel_x + (BLOCK_W * 2 - 1) - money_pos2) >> 1);
+      end
 
-    if (rest_region) begin
-      pixel_rest_addr <=  ((pixel_y >> 1) - rest_vpos) * SM_BLOCK_W +
-                            ((pixel_x + (SM_BLOCK_W * 2 - 1) - sm_block_pos) >> 1);
-    end
-    
-    if (num0_1_region) begin
-      pixel_num_addr <= select_base_addr(mach_coin_one) + 
-                            ((pixel_y >> 1) - num0_1_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num0_1_pos) >> 1);
-    end
+      if (rest_region) begin
+        pixel_rest_addr <=  ((pixel_y >> 1) - rest_vpos) * SM_BLOCK_W +
+                              ((pixel_x + (SM_BLOCK_W * 2 - 1) - sm_block_pos) >> 1);
+      end
+      
+      if (num0_1_region) begin
+        pixel_num_addr <= select_base_addr(mach_coin_one) + 
+                              ((pixel_y >> 1) - num0_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num0_1_pos) >> 1);
+      end
 
-    if (num0_2_region) begin
-      pixel_num_addr <= select_base_addr(mach_coin_five) + 
-                            ((pixel_y >> 1) - num0_2_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num0_2_pos) >> 1);
-    end
+      if (num0_2_region) begin
+        pixel_num_addr <= select_base_addr(mach_coin_five) + 
+                              ((pixel_y >> 1) - num0_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num0_2_pos) >> 1);
+      end
 
-    if (num0_3_region) begin
-      pixel_num_addr <= select_base_addr(mach_coin_ten) + 
-                            ((pixel_y >> 1) - num0_3_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num0_3_pos) >> 1);
-    end
+      if (num0_3_region) begin
+        pixel_num_addr <= select_base_addr(mach_coin_ten) + 
+                              ((pixel_y >> 1) - num0_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num0_3_pos) >> 1);
+      end
 
-    if (num0_4_region) begin
-      pixel_num_addr <= select_base_addr(mach_coin_hundred) + 
-                            ((pixel_y >> 1) - num0_4_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num0_4_pos) >> 1);
-    end
+      if (num0_4_region) begin
+        pixel_num_addr <= select_base_addr(mach_coin_hundred) + 
+                              ((pixel_y >> 1) - num0_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num0_4_pos) >> 1);
+      end
 
-    if (num1_1_region) begin
-      pixel_num_addr <= select_base_addr(used_water_num) + 
-                            ((pixel_y >> 1) - num1_1_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_1_pos) >> 1);
-    end
-    if (num1_2_region) begin
-      pixel_num_addr <= select_base_addr(water_num) + 
-                            ((pixel_y >> 1) - num1_2_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_2_pos) >> 1);
-    end
-    if (num1_3_region) begin
-      pixel_num_addr <= select_base_addr(used_juice_num) + 
-                            ((pixel_y >> 1) - num1_3_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_3_pos) >> 1);
-    end
-    if (num1_4_region) begin
-      pixel_num_addr <= select_base_addr(juice_num) + 
-                            ((pixel_y >> 1) - num1_4_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_4_pos) >> 1);
-    end
-    if (num1_5_region) begin
-      pixel_num_addr <= select_base_addr(used_tea_num) + 
-                            ((pixel_y >> 1) - num1_5_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_5_pos) >> 1);
-    end
-    if (num1_6_region) begin
-      pixel_num_addr <= select_base_addr(tea_num) + 
-                            ((pixel_y >> 1) - num1_6_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_6_pos) >> 1);
-    end
-    if (num1_7_region) begin
-      pixel_num_addr <= select_base_addr(used_cola_num) + 
-                            ((pixel_y >> 1) - num1_7_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_7_pos) >> 1);
-    end
-    if (num1_8_region) begin
-      pixel_num_addr <= select_base_addr(cola_num) + 
-                            ((pixel_y >> 1) - num1_8_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num1_8_pos) >> 1);
-    end
-    if (num2_1_region) begin
-      pixel_num_addr <= select_base_addr(used_coin_one) + 
-                            ((pixel_y >> 1) - num2_1_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_1_pos) >> 1);
-    end
-    if (num2_2_region) begin
-      pixel_num_addr <= select_base_addr(coin_one) + 
-                            ((pixel_y >> 1) - num2_2_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_2_pos) >> 1);
-    end
-    if (num2_3_region) begin
-      pixel_num_addr <= select_base_addr(used_coin_five) + 
-                            ((pixel_y >> 1) - num2_3_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_3_pos) >> 1);
-    end
-    if (num2_4_region) begin
-      pixel_num_addr <= select_base_addr(coin_five) + 
-                            ((pixel_y >> 1) - num2_4_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_4_pos) >> 1);
-    end
-    if (num2_5_region) begin
-      pixel_num_addr <= select_base_addr(used_coin_ten) + 
-                            ((pixel_y >> 1) - num2_5_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_5_pos) >> 1);
-    end
-    if (num2_6_region) begin
-      pixel_num_addr <= select_base_addr(coin_ten) + 
-                            ((pixel_y >> 1) - num2_6_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_6_pos) >> 1);
-    end
-    if (num2_7_region) begin
-      pixel_num_addr <= select_base_addr(used_coin_hundred) + 
-                            ((pixel_y >> 1) - num2_7_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_7_pos) >> 1);
-    end
-    if (num2_8_region) begin
-      pixel_num_addr <= select_base_addr(coin_hundred) + 
-                            ((pixel_y >> 1) - num2_8_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num2_8_pos) >> 1);
-    end
-    if (num3_1_region) begin
-      pixel_num_addr <= select_base_addr(ret_coin_one) + 
-                            ((pixel_y >> 1) - num3_1_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num3_1_pos) >> 1);
-    end
-    if (num3_2_region) begin
-      pixel_num_addr <= select_base_addr(ret_coin_five) + 
-                            ((pixel_y >> 1) - num3_2_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num3_2_pos) >> 1);
-    end
-    if (num3_3_region) begin
-      pixel_num_addr <= select_base_addr(ret_coin_ten) + 
-                            ((pixel_y >> 1) - num3_3_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num3_3_pos) >> 1);
-    end
-    if (num3_4_region) begin
-      pixel_num_addr <= select_base_addr(ret_coin_hundred) + 
-                            ((pixel_y >> 1) - num3_4_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - num3_4_pos) >> 1);
-    end
-    // if (num4_1_region) begin
-    //   pixel_num_addr <= select_base_addr() + 
-    //                         ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
-    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
-    // end
-    // if (num4_2_region) begin
-    //   pixel_num_addr <= select_base_addr() +
-    //                         ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
-    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
-    // end
-    // if (num4_3_region) begin
-    //   pixel_num_addr <= select_base_addr() +
-    //                         ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
-    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
-    // end
-    // if (num4_4_region) begin
-    //   pixel_num_addr <= select_base_addr() +
-    //                         ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
-    //                         ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
-    // end
-    if (slash1_1_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_1_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash1_1_pos) >> 1);
-    end
-    if (slash1_2_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_2_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash1_2_pos) >> 1);
-    end
-    if (slash1_3_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_3_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash1_3_pos) >> 1);
-    end
-    if (slash1_4_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_4_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash1_4_pos) >> 1);
-    end
-    if (slash2_1_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_1_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash2_1_pos) >> 1);
-    end
-    if (slash2_2_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_2_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash2_2_pos) >> 1);
-    end
-    if (slash2_3_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_3_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash2_3_pos) >> 1);
-    end
-    if (slash2_4_region) begin
-      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_4_vpos) * NUM_W +
-                            ((pixel_x + (NUM_W * 2 - 1) - slash2_4_pos) >> 1);
+      if (num1_1_region) begin
+        pixel_num_addr <= select_base_addr(used_water_num) + 
+                              ((pixel_y >> 1) - num1_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_1_pos) >> 1);
+      end
+      if (num1_2_region) begin
+        pixel_num_addr <= select_base_addr(water_num) + 
+                              ((pixel_y >> 1) - num1_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_2_pos) >> 1);
+      end
+      if (num1_3_region) begin
+        pixel_num_addr <= select_base_addr(used_juice_num) + 
+                              ((pixel_y >> 1) - num1_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_3_pos) >> 1);
+      end
+      if (num1_4_region) begin
+        pixel_num_addr <= select_base_addr(juice_num) + 
+                              ((pixel_y >> 1) - num1_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_4_pos) >> 1);
+      end
+      if (num1_5_region) begin
+        pixel_num_addr <= select_base_addr(used_tea_num) + 
+                              ((pixel_y >> 1) - num1_5_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_5_pos) >> 1);
+      end
+      if (num1_6_region) begin
+        pixel_num_addr <= select_base_addr(tea_num) + 
+                              ((pixel_y >> 1) - num1_6_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_6_pos) >> 1);
+      end
+      if (num1_7_region) begin
+        pixel_num_addr <= select_base_addr(used_coke_num) + 
+                              ((pixel_y >> 1) - num1_7_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_7_pos) >> 1);
+      end
+      if (num1_8_region) begin
+        pixel_num_addr <= select_base_addr(coke_num) + 
+                              ((pixel_y >> 1) - num1_8_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num1_8_pos) >> 1);
+      end
+      if (num2_1_region) begin
+        pixel_num_addr <= select_base_addr(used_coin_one) + 
+                              ((pixel_y >> 1) - num2_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_1_pos) >> 1);
+      end
+      if (num2_2_region) begin
+        pixel_num_addr <= select_base_addr(coin_one) + 
+                              ((pixel_y >> 1) - num2_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_2_pos) >> 1);
+      end
+      if (num2_3_region) begin
+        pixel_num_addr <= select_base_addr(used_coin_five) + 
+                              ((pixel_y >> 1) - num2_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_3_pos) >> 1);
+      end
+      if (num2_4_region) begin
+        pixel_num_addr <= select_base_addr(coin_five) + 
+                              ((pixel_y >> 1) - num2_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_4_pos) >> 1);
+      end
+      if (num2_5_region) begin
+        pixel_num_addr <= select_base_addr(used_coin_ten) + 
+                              ((pixel_y >> 1) - num2_5_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_5_pos) >> 1);
+      end
+      if (num2_6_region) begin
+        pixel_num_addr <= select_base_addr(coin_ten) + 
+                              ((pixel_y >> 1) - num2_6_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_6_pos) >> 1);
+      end
+      if (num2_7_region) begin
+        pixel_num_addr <= select_base_addr(used_coin_hundred) + 
+                              ((pixel_y >> 1) - num2_7_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_7_pos) >> 1);
+      end
+      if (num2_8_region) begin
+        pixel_num_addr <= select_base_addr(coin_hundred) + 
+                              ((pixel_y >> 1) - num2_8_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_8_pos) >> 1);
+      end
+      if (num3_1_region) begin
+        pixel_num_addr <= select_base_addr(ret_coin_one) + 
+                              ((pixel_y >> 1) - num3_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num3_1_pos) >> 1);
+      end
+      if (num3_2_region) begin
+        pixel_num_addr <= select_base_addr(ret_coin_five) + 
+                              ((pixel_y >> 1) - num3_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num3_2_pos) >> 1);
+      end
+      if (num3_3_region) begin
+        pixel_num_addr <= select_base_addr(ret_coin_ten) + 
+                              ((pixel_y >> 1) - num3_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num3_3_pos) >> 1);
+      end
+      if (num3_4_region) begin
+        pixel_num_addr <= select_base_addr(ret_coin_hundred) + 
+                              ((pixel_y >> 1) - num3_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num3_4_pos) >> 1);
+      end
+      // if (num4_1_region) begin
+      //   pixel_num_addr <= select_base_addr() + 
+      //                         ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
+      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
+      // end
+      // if (num4_2_region) begin
+      //   pixel_num_addr <= select_base_addr() +
+      //                         ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
+      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
+      // end
+      // if (num4_3_region) begin
+      //   pixel_num_addr <= select_base_addr() +
+      //                         ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
+      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
+      // end
+      // if (num4_4_region) begin
+      //   pixel_num_addr <= select_base_addr() +
+      //                         ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
+      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
+      // end
+      if (slash1_1_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash1_1_pos) >> 1);
+      end
+      if (slash1_2_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash1_2_pos) >> 1);
+      end
+      if (slash1_3_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash1_3_pos) >> 1);
+      end
+      if (slash1_4_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash1_4_pos) >> 1);
+      end
+      if (slash2_1_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash2_1_pos) >> 1);
+      end
+      if (slash2_2_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash2_2_pos) >> 1);
+      end
+      if (slash2_3_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash2_3_pos) >> 1);
+      end
+      if (slash2_4_region) begin
+        pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - slash2_4_pos) >> 1);
 
-    if (vending_tea_region) begin
-      pixel_tea_addr2 <= ((pixel_y>>1)-vending_tea_vpos)*TEA_W +
-                    ((pixel_x +(TEA_W*2-1)-vending_tea_pos)>>1);
-    end
-    if (vending_coke_region) begin
-      pixel_coke_addr2 <= coke_addr2+((pixel_y>>1)-vending_coke_vpos)*COKE_W +
-                    ((pixel_x +(COKE_W*2-1)-vending_coke_pos)>>1);
+      if (vending_tea_region) begin
+        pixel_tea_addr2 <= ((pixel_y>>1)-vending_tea_vpos)*TEA_W +
+                      ((pixel_x +(TEA_W*2-1)-vending_tea_pos)>>1);
+      end
+      if (vending_coke_region) begin
+        pixel_coke_addr2 <= coke_addr2+((pixel_y>>1)-vending_coke_vpos)*COKE_W +
+                      ((pixel_x +(COKE_W*2-1)-vending_coke_pos)>>1);
+      end
     end
   end
 end
@@ -1862,11 +1872,11 @@ reg [1:0] item_pointer;
 assign water_sold_out = (water_num == used_water_num);
 assign juice_sold_out = (juice_num == used_juice_num);
 assign tea_sold_out = (tea_num == used_tea_num);
-assign coke_sold_out = (cola_num == used_cola_num);
+assign coke_sold_out = (coke_num == used_coke_num);
 localparam [1:0] CHOOSE_WATER = 2'd0,
                  CHOOSE_TEA = 2'd2,
                  CHOOSE_JUICE = 2'd1,
-                 CHOOSE_COLA = 2'd3;
+                 CHOOSE_COKE = 2'd3;
 
 // choose what item
 always @(posedge clk) begin
@@ -1900,7 +1910,7 @@ always @(posedge clk) begin
     used_water_num <= 0;
     used_tea_num <= 0;
     used_juice_num <= 0;
-    used_cola_num <= 0;
+    used_coke_num <= 0;
   end
   else if (P == S_MAIN_BUY) begin 
     if (btn_pressed[2]) begin
@@ -1919,7 +1929,7 @@ always @(posedge clk) begin
             if(used_juice_num < juice_num)
               used_juice_num <= used_juice_num + 1;
           end
-          CHOOSE_coke: begin
+          CHOOSE_COKE: begin
             if(used_coke_num < coke_num)
               used_coke_num <= used_coke_num + 1;
           end
@@ -1940,7 +1950,7 @@ always @(posedge clk) begin
             if(used_juice_num > 0)
               used_juice_num <= used_juice_num - 1;
           end
-          CHOOSE_coke: begin
+          CHOOSE_COKE: begin
             if(used_coke_num > 0)
               used_coke_num <= used_coke_num - 1;
           end
@@ -2198,7 +2208,7 @@ always @(posedge clk) begin
     remain_coke_num <= 0;
   end
   // set remain constant
-  else if (P == S_MAIN_PAY && P_next == S_MAIN_DROP) begin
+  else if (P == S_MAIN_CALC && P_next == S_MAIN_DROP) begin
     remain_water_num <= used_water_num;
     remain_tea_num <= used_tea_num;
     remain_juice_num <= used_juice_num;
