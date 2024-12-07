@@ -43,6 +43,19 @@ reg  [31:0] coke_drop_clock;
 
 wire [9:0]  vend_pos;
 wire        vend_region;
+
+wire [9:0]  water_pos2;
+wire        water_region2;
+
+wire [9:0]  juice_pos2;
+wire        juice_region2;
+
+wire [9:0]  tea_pos2;
+wire        tea_region2;
+
+wire [9:0]  coke_pos2;
+wire        coke_region2;
+
 wire [9:0]  drop_pos;
 wire        drop_region;
 
@@ -68,6 +81,7 @@ wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
 wire [11:0] data_vend_out;
 
+
 wire [20:0] sram_water_addr;
 wire [11:0] data_water_in;
 wire [11:0] data_water_out;
@@ -83,6 +97,22 @@ wire [11:0] data_juice_out;
 wire [20:0] sram_coke_addr;
 wire [11:0] data_coke_in;
 wire [11:0] data_coke_out;
+
+wire [20:0] sram_water_addr2;
+wire [11:0] data_water_in2;
+wire [11:0] data_water_out2;
+
+wire [20:0] sram_juice_addr2;
+wire [11:0] data_juice_in2;
+wire [11:0] data_juice_out2;
+
+wire [20:0] sram_tea_addr2;
+wire [11:0] data_tea_in2;
+wire [11:0] data_tea_out2;
+
+wire [20:0] sram_coke_addr2;
+wire [11:0] data_coke_in2;
+wire [11:0] data_coke_out2;
 
 wire        sram_we, sram_en;
 
@@ -103,11 +133,18 @@ reg  [11:0] rgb_next; // RGB value for the next pixel
 // Application-specific VGA signals
 
 reg  [20:0] pixel_vend_addr;
+
 reg  [20:0] pixel_drop_addr;
 reg  [20:0] pixel_water_addr;
 reg  [20:0] pixel_tea_addr;
 reg  [20:0] pixel_juice_addr;
 reg  [20:0] pixel_coke_addr;
+
+reg  [20:0] pixel_water_addr2;
+reg  [20:0] pixel_juice_addr2;
+reg  [20:0] pixel_tea_addr2;
+reg  [20:0] pixel_coke_addr2;
+reg  [20:0] pixel_drop_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -152,6 +189,41 @@ reg [9:0] coke_vpos;
 // Initializes the fish images starting addresses.
 // Note: System Verilog has an easier way to initialize an array,
 //       but we are using Verilog 2001 :(
+
+// integer k;
+// initial begin
+//   for (k = 0; k < 8; k = k + 1) begin
+//     fish1_addr[k] = VBUF_W * VBUF_H + FISH1_W * FISH1_H * k;
+//   end
+//   for (k = 0; k < 4; k = k + 1) begin
+//     fish2_addr[k] = FISH2_W * FISH2_H * k;
+//     fish3_addr[k] = FISH2_W * FISH2_H * 4 + FISH3_W * FISH3_H * k;
+//   end
+// end
+localparam water_vpos2   = 42;
+localparam WATER_W2 = 18;
+localparam WATER_H2 = 27;
+localparam juice_vpos2   = 50;
+localparam JUICE_W2 = 22;
+localparam JUICE_H2 = 27;
+localparam tea_vpos2   = 105;
+localparam TEA_W2 = 22;
+localparam TEA_H2 = 18;
+localparam coke_vpos2   = 107;
+localparam COKE_W2 = 12;
+localparam COKE_H2 = 24;
+
+reg [20:0]water_addr2;
+reg [20:0]juice_addr2;
+reg [20:0]tea_addr2;
+reg [20:0]coke_addr2;
+initial begin
+  water_addr2 = 0;
+  juice_addr2 = WATER_W2 * WATER_H2;
+  tea_addr2 = 0;
+  coke_addr2 = TEA_W2 * TEA_H2;
+end
+
 // Instiantiate the VGA sync signal generator
 vga_sync vs0(
   .clk(vga_clk), .reset(~reset_n), .oHS(VGA_HSYNC), .oVS(VGA_VSYNC),
@@ -207,13 +279,40 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images
           .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
           .addr_2(sram_f1_addr), .data_i_2(data_f1_in), .data_o_2(data_f1_out));
 
-sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H + TEA_W*TEA_H), .FILE("images2.mem"))
-  ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
-          .addr_1(sram_water_addr), .data_i_1(data_water_in), .data_o_1(data_water_out),
-          .addr_2(sram_tea_addr), .data_i_2(data_tea_in), .data_o_2(data_tea_out));
+// sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(FISH2_W*FISH2_H*4+FISH3_W*FISH3_H*4), .FILE("images2.mem"))
+//   ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
+//           .addr_1(sram_f2_addr), .data_i_1(data_f2_in), .data_o_1(data_f2_out),
+//           .addr_2(sram_f3_addr), .data_i_2(data_f3_in), .data_o_2(data_f3_out));
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W2*WATER_H2+JUICE_W2*JUICE_H2), .FILE("images4.mem"))
+  ram_4 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_water_addr2), .data_i_1(data_water_in2), .data_o_1(data_water_out2),
+          .addr_2(sram_juice_addr2), .data_i_2(data_juice_in2), .data_o_2(data_juice_out2));
+
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(TEA_W2*TEA_H2+COKE_W2*COKE_H2), .FILE("images5.mem"))
+  ram_5 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_tea_addr2), .data_i_1(data_tea_in2), .data_o_1(data_tea_out2),
+          .addr_2(sram_coke_addr2), .data_i_2(data_coke_in2), .data_o_2(data_coke_out2));
+// assign sram_we = usr_sw[0]; // In this demo, we do not write the SRAM. However, if
+//                                   // you set 'sram_we' to 0, Vivado fails to synthesize
+//                                   // ram0 as a BRAM -- this is a bug in Vivado.
+// assign sram_en = 1;               // Here, we always enable the SRAM block.
+// assign sram_f1_addr = pixel_f1_addr;
+// assign data_f1_in = 12'h000; // SRAM is read-only so we tie inputs to zeros.
+
+// assign sram_f2_addr = pixel_f2_addr;
+// assign data_f2_in = 12'h000;
+
+// assign sram_f3_addr = pixel_f3_addr;
+// assign data_f3_in = 12'h000;
+
+// assign sram_bg_addr = pixel_bg_addr;
+// assign data_bg_in = 12'h000;
 
 assign sram_vend_addr = pixel_vend_addr;
 assign data_vend_in = 12'h000;
+
 
 assign sram_water_addr = pixel_water_addr;
 assign data_water_in = 12'h000;
@@ -223,6 +322,16 @@ assign sram_juice_addr = pixel_juice_addr;
 assign data_juice_in = 12'h000;
 assign sram_coke_addr = pixel_coke_addr;
 assign data_coke_in = 12'h000;
+
+assign sram_water_addr2 = pixel_water_addr2;
+assign data_water_in2 = 12'h000;
+assign sram_juice_addr2 = pixel_juice_addr2;
+assign data_juice_in2 = 12'h000;
+assign sram_tea_addr2 = pixel_tea_addr2;
+assign data_tea_in2 = 12'h000;
+assign sram_coke_addr2 = pixel_coke_addr2;
+assign data_coke_in2 = 12'h000;
+
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -236,6 +345,10 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 // or 10.49 msec
 
 assign vend_pos = 220;
+assign water_pos2 = 88;
+assign juice_pos2 = 192;
+assign tea_pos2 = 92;
+assign coke_pos2 = 182;
 assign drop_pos = 176;
 
 assign water_pos = water_pos_reg;
@@ -534,6 +647,22 @@ assign vend_region =
           pixel_y >= (vend_vpos<<1) && pixel_y < (vend_vpos+VEND_H)<<1 &&
           (pixel_x + 199) >= vend_pos && pixel_x < vend_pos + 1;
 
+assign water_region2 =
+          pixel_y >= (water_vpos2<<1) && pixel_y < (water_vpos2+WATER_H2)<<1 &&
+          (pixel_x + 35) >= water_pos2 && pixel_x < water_pos2 + 1;
+
+assign juice_region2 =
+          pixel_y >= (juice_vpos2<<1) && pixel_y < (juice_vpos2+JUICE_H2)<<1 &&
+          (pixel_x + 43) >= juice_pos2 && pixel_x < juice_pos2 + 1;
+
+assign tea_region2 =
+          pixel_y >= (tea_vpos2<<1) && pixel_y < (tea_vpos2+TEA_H2)<<1 &&
+          (pixel_x + 43) >= tea_pos2 && pixel_x < tea_pos2 + 1;
+
+assign coke_region2 =
+          pixel_y >= (coke_vpos2<<1) && pixel_y < (coke_vpos2+COKE_H2)<<1 &&
+          (pixel_x + 23) >= coke_pos2 && pixel_x < coke_pos2 + 1;
+
 assign drop_region =
           pixel_y >= (drop_vpos<<1) && pixel_y < (drop_vpos+DROP_H)<<1 &&
           (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
@@ -566,6 +695,7 @@ always @ (posedge clk) begin
       pixel_vend_addr <= ((pixel_y>>1) - vend_vpos)*VEND_W +
                     ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
     end
+
     if (fall_water_region) begin
       pixel_water_addr <= ((pixel_y>>1) - water_vpos)*WATER_W +
                     ((pixel_x + (WATER_W*2-1) - water_pos)>>1);
@@ -583,6 +713,24 @@ always @ (posedge clk) begin
                     ((pixel_x + (TEA_W*2-1) - tea_pos)>>1);
     end
   end
+
+    if (water_region2) begin
+      pixel_water_addr2 <= ((pixel_y>>1)-water_vpos2)*WATER_W2 +
+                    ((pixel_x +(WATER_W2*2-1)-water_pos2)>>1);
+    end
+    if (juice_region2) begin
+      pixel_juice_addr2 <= juice_addr2+((pixel_y>>1)-juice_vpos2)*JUICE_W2 +
+                    ((pixel_x +(JUICE_W2*2-1)-juice_pos2)>>1);
+    end
+    if (tea_region2) begin
+      pixel_tea_addr2 <= ((pixel_y>>1)-tea_vpos2)*TEA_W2 +
+                    ((pixel_x +(TEA_W2*2-1)-tea_pos2)>>1);
+    end
+    if (coke_region2) begin
+      pixel_coke_addr2 <= coke_addr2+((pixel_y>>1)-coke_vpos2)*COKE_W2 +
+                    ((pixel_x +(COKE_W2*2-1)-coke_pos2)>>1);
+    end
+
 end
 
 // End of the AGU code.
@@ -598,14 +746,28 @@ always @(*) begin
   if (~video_on)
     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
   else
+
     if (drop_region && fall_water_region && data_water_out != 12'h0f0)
       rgb_next = data_water_out;
     else if (drop_region && fall_tea_region && data_tea_out != 12'h0f0)
       rgb_next = data_tea_out;
+
+    if (drop_region)
+      rgb_next = 12'hf00;
+    else if (water_region2 && data_water_out2 != 12'h0f0)
+      rgb_next = data_water_out2;
+    else if (juice_region2 && data_juice_out2 != 12'h0f0)
+      rgb_next = data_juice_out2;
+    else if (tea_region2 && data_tea_out2 != 12'h0f0)
+      rgb_next = data_tea_out2;
+    else if (coke_region2 && data_coke_out2 != 12'h0f0)
+      rgb_next = data_coke_out2;
+
     else if (vend_region && data_vend_out != 12'h0f0)
       rgb_next = data_vend_out;
     else
       rgb_next = 12'hed5;
+  
 end
 // End of the video data display code.
 // ------------------------------------------------------------------------
