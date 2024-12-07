@@ -667,6 +667,86 @@ end
 // ------------------------------------------------------------------------
 // S_MAIN_CALC
 
+reg [3:0] mach_coin_one, mach_coin_five, mach_coin_ten, mach_coin_hundred;
+reg [3:0] ret_coin_one, ret_coin_five, ret_coin_ten, ret_coin_hundred;
+reg refund_valid;
+reg [8:0] refund;
+
+always @ (posedge clk) begin
+  if (~reset_n) begin
+    ret_coin_one     <= 4'd0;
+    ret_coin_five    <= 4'd0;
+    ret_coin_ten     <= 4'd0;
+    ret_coin_hundred <= 4'd0;
+    refund_valid     <= 1'b0;
+  end else begin
+    used_total = used_coin_one * 1 + used_coin_five * 5 + 
+                used_coin_ten * 10 + used_coin_hundred * 100;
+                    
+    if (used_total >= total_amount) begin
+        refund = used_total - total_amount;
+        
+        // Initialize refund coins
+        ret_coin_hundred = 4'd0;
+        ret_coin_ten     = 4'd0;
+        ret_coin_five    = 4'd0;
+        ret_coin_one     = 4'd0;
+        
+        // Calculate hundreds
+        if (refund >= 100 && mach_coin_hundred > 0) begin
+            ret_coin_hundred = (refund / 100) > mach_coin_hundred ? mach_coin_hundred : (refund / 100);
+            refund = refund - ret_coin_hundred * 100;
+        end
+        
+        // Calculate tens
+        if (refund >= 10 && mach_coin_ten > 0) begin
+            ret_coin_ten = (refund / 10) > mach_coin_ten ? mach_coin_ten : (refund / 10);
+            refund = refund - ret_coin_ten * 10;
+        end
+        
+        // Calculate fives
+        if (refund >= 5 && mach_coin_five > 0) begin
+            ret_coin_five = (refund / 5) > mach_coin_five ? mach_coin_five : (refund / 5);
+            refund = refund - ret_coin_five * 5;
+        end
+        
+        // Calculate ones
+        if (refund >= 1 && mach_coin_one > 0) begin
+            ret_coin_one = (refund / 1) > mach_coin_one ? mach_coin_one : (refund / 1);
+            refund = refund - ret_coin_one * 1;
+        end
+        
+        // Check if refund was successfully calculated
+        if (refund == 0) begin
+            refund_valid <= 1'b1;
+            // Update machine coins
+            mach_coin_hundred <= mach_coin_hundred - ret_coin_hundred + used_coin_hundred;
+            mach_coin_ten     <= mach_coin_ten - ret_coin_ten + used_coin_ten;
+            mach_coin_five    <= mach_coin_five - ret_coin_five + used_coin_five;
+            mach_coin_one     <= mach_coin_one - ret_coin_one + used_coin_one;
+            coin_hundred      <= coin_hundred - used_coin_hundred + ret_coin_hundred;
+            coin_ten          <= coin_ten - used_coin_ten + ret_coin_ten;
+            coin_five         <= coin_five - used_coin_five + ret_coin_five;
+            coin_one          <= coin_one - used_coin_one + ret_coin_one;
+        end else begin
+            // Not enough coins to provide exact refund
+            ret_coin_hundred = 4'd0;
+            ret_coin_ten     = 4'd0;
+            ret_coin_five    = 4'd0;
+            ret_coin_one     = 4'd0;
+            refund_valid     <= 1'b0;
+        end
+    end else begin
+        // Not enough money inserted
+        ret_coin_hundred = 4'd0;
+        ret_coin_ten     = 4'd0;
+        ret_coin_five    = 4'd0;
+        ret_coin_one     = 4'd0;
+        refund_valid     <= 1'b0;
+    end
+  end
+end
+
 // ------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------
