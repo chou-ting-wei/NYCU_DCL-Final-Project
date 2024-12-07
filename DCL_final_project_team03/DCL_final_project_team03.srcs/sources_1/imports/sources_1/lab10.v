@@ -508,7 +508,7 @@ always @(posedge clk) begin
     if(drop_speed == 1) begin
       drop_speed <= 0;
     end
-    else if(drop_clock[26:25]==1) begin
+    else if(drop_clock[25:24]==1) begin
       drop_speed <= 1;
     end
   end
