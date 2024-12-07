@@ -3,6 +3,8 @@
 *.str
 *.cache
 *.runs
+*.sim
+*.ip_user_files
 
 .Xil
 .DS_Store
