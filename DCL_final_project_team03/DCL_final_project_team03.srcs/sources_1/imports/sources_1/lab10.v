@@ -36,7 +36,7 @@ module lab10(
 );
 
 // Declare system variables
-reg  [35:0] drop_clock;
+reg  [31:0] drop_clock;
 // reg  [35:0] fish2_clock;
 // reg  [35:0] fish3_clock;
 // wire [9:0]  fish1_pos;
@@ -51,6 +51,9 @@ wire        vend_region;
 
 wire [9:0]  drop_pos;
 wire        drop_region;
+
+wire [9:0]  water_pos;
+wire        fall_water_region;
 
 // declare SRAM control signals
 wire [20:0] sram_f1_addr;
@@ -152,10 +155,9 @@ reg  [3:0]  prev_btn_level;
 
 // reg [2:0] current_fish = 3'd0;
 
-// reg [7:0] fish1_vpos = 8'd40; // Vertical position of fish1
+reg [9:0] water_vpos;
 // reg [7:0] fish2_vpos = 8'd80; // Vertical position of fish2
 // reg [7:0] fish3_vpos = 8'd120; // Vertical position of fish3
-reg [8:0] water_vpos = 8'd118;
 // Direction: 0 = left, 1 = right
 // reg fish1_dir;
 // reg fish2_dir;
@@ -391,7 +393,7 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 
 assign vend_pos = 220;
 assign drop_pos = 176;
-assign water_pos = 176;
+assign water_pos = 176; // right bound
 // always @(*) begin
 //   case (speed_level[0])
 //     3'd0: begin
@@ -480,23 +482,53 @@ assign water_pos = 176;
 // end
 
 // drop clock control
-wire [9:0] water_fall_dis;
-reg at_bottom; // item falls to reach bottom
-assign water_fall_dis = drop_clock[31:24];
-always @(*) begin
+reg drop_speed;
+always @(posedge clk) begin
   if(~reset_n) begin
     drop_clock <= 0;
   end
-  else if (P == S_MAIN_DROP) begin
-    if(~at_bottom) begin
-      drop_clock <= drop_clock + 1;
+  else if (P == S_MAIN_DROP && remain_water_num > 0) begin
+    if(drop_speed == 1 || water_vpos > 158) begin
+      drop_clock <= 0;
+    end
+    else if(water_vpos > 158) begin
+      drop_clock <= 0;
     end
     else begin
-      drop_clock <= 0;
+      drop_clock <= drop_clock + 1;
     end
   end
 end
 
+always @(posedge clk) begin
+  if(~reset_n) begin
+    drop_speed <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_water_num > 0) begin
+    if(drop_speed == 1) begin
+      drop_speed <= 0;
+    end
+    else if(drop_clock[26:25]==1) begin
+      drop_speed <= 1;
+    end
+  end
+end
+
+always @(posedge clk) begin
+    if (~reset_n) begin
+      water_vpos <= 10'd118;
+    end else begin
+     // Handle Fish Raising (Button1)
+      if (P == S_MAIN_DROP && remain_water_num > 0) begin
+        if(water_vpos > 158) begin
+          water_vpos <= 10'd118;
+        end
+        else begin
+          water_vpos <= water_vpos + drop_speed;
+        end
+      end
+    end
+end
 // always @(posedge clk) begin
 //   if (~reset_n) begin
 //     fish1_clock <= 0;
@@ -600,8 +632,9 @@ assign drop_region =
           (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
 
 assign fall_water_region =
-          pixel_y >= ((water_vpos + water_fall_dis)<<1) && pixel_y < (water_vpos + WATER_H + water_fall_dis)<<1 &&
-          (pixel_x + 17) >= water_pos && pixel_x < water_pos + 1;
+          pixel_y >= (water_vpos<<1) && 
+          pixel_y < ((water_vpos + WATER_H)<<1) &&
+          (pixel_x + 35) >= water_pos && pixel_x < (water_pos + 1);
 // always @ (posedge clk) begin
 // if (~reset_n) begin
 //     pixel_f1_addr <= 0;
@@ -658,7 +691,7 @@ always @ (posedge clk) begin
                     ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
     end
     if (fall_water_region) begin
-      pixel_water_addr <= ((pixel_y>>1)-water_vpos - water_fall_dis)*WATER_W +
+      pixel_water_addr <= ((pixel_y>>1) - water_vpos)*WATER_W +
                     ((pixel_x +(WATER_W*2-1)-water_pos)>>1);
     end
   end
@@ -1047,7 +1080,7 @@ end
 
 // ------------------------------------------------------------------------
 // S_MAIN_DROP
-reg [1:0] what_item_fall;
+reg [3:0] what_item_fall;
 reg [3:0] remain_water_num, 
           remain_tea_num, 
           remain_juice_num, 
@@ -1076,7 +1109,7 @@ always @(*) begin
   end
   // remain constant minus
   else if (P == S_MAIN_DROP) begin
-    if((water_vpos + water_fall_dis) > 168) begin
+    if(water_vpos > 158) begin
       case(what_item_fall)
       FALL_WATER: begin
         remain_water_num <= remain_water_num - 1;
@@ -1094,25 +1127,12 @@ always @(*) begin
     end
   end
 end
-always @(*) begin
-  if(~reset_n) begin
-    at_bottom <= 0;
-  end
-  // remain constant minus
-  else if (P == S_MAIN_DROP) begin
-    if(at_bottom == 1) begin
-      at_bottom <= 0;
-    end
-    else if((water_vpos + water_fall_dis) > 168) begin
-      at_bottom <= 1;
-    end
-  end
-end
+
 // control what item to fall
 // need modify: item image
 always @(*) begin
   if(~reset_n) begin
-    what_item_fall <= 0;
+    what_item_fall <= 10;
   end
   else if (P == S_MAIN_DROP) begin
     if (remain_water_num > 0) begin
