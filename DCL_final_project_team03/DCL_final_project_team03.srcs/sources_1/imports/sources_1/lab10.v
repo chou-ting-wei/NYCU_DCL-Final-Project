@@ -34,7 +34,6 @@ module lab10(
   output [3:0] VGA_GREEN,
   output [3:0] VGA_BLUE
 );
-// FSM variable
 
 // Declare system variables
 reg  [35:0] fish1_clock;
@@ -86,7 +85,6 @@ reg  [20:0] pixel_f2_addr;
 reg  [20:0] pixel_f3_addr;
 reg  [20:0] pixel_bg_addr;
 
-//------------------------------picture-------------------------------------------
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
 localparam VBUF_H = 240; // video buffer height
@@ -106,45 +104,10 @@ reg [20:0] fish2_addr[0:3];
 localparam FISH3_W      = 64;
 localparam FISH3_H      = 72;
 reg [20:0] fish3_addr[0:3];
-//------------------------------picture end-------------------------------------------
-//---------------------------------debounce-------------------------------------------
+
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
 
-debounce btn_db0(
-  .clk(clk),
-  .btn_input(usr_btn[0]),
-  .btn_output(btn_level[0])
-);
-
-debounce btn_db1(
-  .clk(clk),
-  .btn_input(usr_btn[1]),
-  .btn_output(btn_level[1])
-);
-
-debounce btn_db2(
-  .clk(clk),
-  .btn_input(usr_btn[2]),
-  .btn_output(btn_level[2])
-);
-
-debounce btn_db3(
-  .clk(clk),
-  .btn_input(usr_btn[3]),
-  .btn_output(btn_level[3])
-);
-
-always @(posedge clk) begin
-  if (~reset_n)
-    prev_btn_level <= 4'b0000;
-  else
-    prev_btn_level <= btn_level;
-end
-
-assign btn_pressed = (btn_level & ~prev_btn_level);
-//---------------------------------debounce end-------------------------------------------
-//---------------------------------debounce end-------------------------------------------
 reg [2:0] speed_level[0:2];
 
 reg [2:0] current_fish = 3'd0;  
@@ -189,7 +152,38 @@ clk_divider#(2) clk_divider0(
   .clk_out(vga_clk)
 );
 
+debounce btn_db0(
+  .clk(clk),
+  .btn_input(usr_btn[0]),
+  .btn_output(btn_level[0])
+);
 
+debounce btn_db1(
+  .clk(clk),
+  .btn_input(usr_btn[1]),
+  .btn_output(btn_level[1])
+);
+
+debounce btn_db2(
+  .clk(clk),
+  .btn_input(usr_btn[2]),
+  .btn_output(btn_level[2])
+);
+
+debounce btn_db3(
+  .clk(clk),
+  .btn_input(usr_btn[3]),
+  .btn_output(btn_level[3])
+);
+
+always @(posedge clk) begin
+  if (~reset_n)
+    prev_btn_level <= 4'b0000;
+  else
+    prev_btn_level <= btn_level;
+end
+
+assign btn_pressed = (btn_level & ~prev_btn_level);
 
 // reg fish1_speed_chg;
 // reg fish2_speed_chg;
@@ -608,17 +602,18 @@ localparam [3:0]
   S_MAIN_BUY          = 4'd1,
   S_MAIN_PAY          = 4'd2,
   S_MAIN_CALC         = 4'd3,
-  S_MAIN_DROP         = 4'd4;
+  S_MAIN_DROP         = 4'd4,
+  S_MAIN_ERROR        = 4'd5;
 
 reg [3:0] P, P_next;
 localparam INIT_DELAY = 100_000; // 1 msec @ 100 MHz
 reg [$clog2(INIT_DELAY):0] init_counter;
 
-// item value
-localparam WATER_VALUE = 3,
-           TEA_VALUE = 5,
-           JUICE_VALUE = 10,
-           COLA_VALUE = 20;
+assign usr_led = P;
+
+reg calc_done;
+reg [1:0] refund_valid;
+
 // ------------------------------------------------------------------------
 // FSM of the main controller
 always @(posedge clk) begin
@@ -634,15 +629,26 @@ end
 always @(*) begin // FSM next-state logic
   case (P)
       S_MAIN_INIT:
-        P_next = (init_counter < INIT_DELAY) ? S_MAIN_INIT : S_MAIN_BUY;
+        P_next = (init_counter < INIT_DELAY) ? S_MAIN_BUY : S_MAIN_INIT;
       S_MAIN_BUY:
-        P_next = (btn_pressed[3]) ? S_MAIN_BUY : S_MAIN_PAY;
+        P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_BUY;
       S_MAIN_PAY:
-        P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_CALC;
-      S_MAIN_CALC:
-        P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_DROP;
+        P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
+      S_MAIN_CALC: begin
+        if (calc_done) begin
+          if (refund_valid == 2'b10) begin
+            P_next = S_MAIN_DROP;
+          end else begin
+            P_next = S_MAIN_ERROR;
+          end
+        end else begin
+          P_next = S_MAIN_CALC;
+        end
+      end
       S_MAIN_DROP:
-        P_next = (btn_pressed[3]) ? S_MAIN_DROP : S_MAIN_INIT;
+        P_next = (btn_pressed[3]) ? S_MAIN_INIT : S_MAIN_DROP;
+      S_MAIN_ERROR:
+        P_next = (btn_pressed[3]) ? S_MAIN_INIT : S_MAIN_ERROR;
       default:
         P_next = S_MAIN_INIT;
   endcase
@@ -664,6 +670,11 @@ always @(posedge clk) begin
   else init_counter <= 0;
 end
 // ------------------------------------------------------------------------
+
+localparam WATER_VALUE = 3,
+           TEA_VALUE = 5,
+           JUICE_VALUE = 10,
+           COLA_VALUE = 20;
 
 // ------------------------------------------------------------------------
 // S_MAIN_BUY
@@ -771,7 +782,7 @@ always @(posedge clk) begin
   if (~reset_n)begin
     coin_pointer = 0;
   end
-  else if (P == S_MAIN_BUY) begin
+  else if (P == S_MAIN_PAY) begin
     if (btn_pressed[0]) begin
       coin_pointer <= coin_pointer - 1;
     end
@@ -844,9 +855,9 @@ end
 // ------------------------------------------------------------------------
 // S_MAIN_CALC
 
+reg [7:0] used_total;
 reg [3:0] mach_coin_one, mach_coin_five, mach_coin_ten, mach_coin_hundred;
 reg [3:0] ret_coin_one, ret_coin_five, ret_coin_ten, ret_coin_hundred;
-reg refund_valid;
 reg [8:0] refund;
 
 always @ (posedge clk) begin
@@ -855,7 +866,8 @@ always @ (posedge clk) begin
     ret_coin_five    <= 4'd0;
     ret_coin_ten     <= 4'd0;
     ret_coin_hundred <= 4'd0;
-    refund_valid     <= 1'b0;
+    refund_valid     <= 2'b00;
+    calc_done        <= 1'b0;
   end else begin
     used_total = used_coin_one * 1 + used_coin_five * 5 + 
                 used_coin_ten * 10 + used_coin_hundred * 100;
@@ -895,7 +907,7 @@ always @ (posedge clk) begin
         
         // Check if refund was successfully calculated
         if (refund == 0) begin
-            refund_valid <= 1'b1;
+            refund_valid <= 2'b10;
             // Update machine coins
             mach_coin_hundred <= mach_coin_hundred - ret_coin_hundred + used_coin_hundred;
             mach_coin_ten     <= mach_coin_ten - ret_coin_ten + used_coin_ten;
@@ -905,13 +917,15 @@ always @ (posedge clk) begin
             coin_ten          <= coin_ten - used_coin_ten + ret_coin_ten;
             coin_five         <= coin_five - used_coin_five + ret_coin_five;
             coin_one          <= coin_one - used_coin_one + ret_coin_one;
+            calc_done <= 1'b1;
         end else begin
             // Not enough coins to provide exact refund
             ret_coin_hundred = 4'd0;
             ret_coin_ten     = 4'd0;
             ret_coin_five    = 4'd0;
             ret_coin_one     = 4'd0;
-            refund_valid     <= 1'b0;
+            refund_valid     <= 2'b01;
+            calc_done <= 1'b1;
         end
     end else begin
         // Not enough money inserted
@@ -919,7 +933,8 @@ always @ (posedge clk) begin
         ret_coin_ten     = 4'd0;
         ret_coin_five    = 4'd0;
         ret_coin_one     = 4'd0;
-        refund_valid     <= 1'b0;
+        refund_valid     <= 2'b00;
+        calc_done <= 1'b1;
     end
   end
 end
@@ -931,30 +946,9 @@ end
 
 // ------------------------------------------------------------------------
 
-// LCD test
-always @(posedge clk) begin
-  if(P == S_MAIN_BUY) begin
-    row_A <= {bin_to_ascii(water_num), bin_to_ascii(tea_num), bin_to_ascii(juice_num), bin_to_ascii(cola_num), "            "};
-    row_B <= {bin_to_ascii(used_water_num), bin_to_ascii(used_tea_num), bin_to_ascii(used_juice_num), bin_to_ascii(used_cola_num), "            "};
-  end
-  else if(P == S_MAIN_PAY) begin
-    row_A <= {bin_to_ascii(coin_one), bin_to_ascii(coin_five), bin_to_ascii(coin_ten), bin_to_ascii(coin_hundred), "            "};
-    row_B <= {bin_to_ascii(used_coin_one), bin_to_ascii(used_coin_five), bin_to_ascii(used_coin_ten), bin_to_ascii(used_coin_hundred), "            "};
-  end
-end
+// ------------------------------------------------------------------------
+// S_MAIN_ERROR
 
-assign usr_led = P;
+// ------------------------------------------------------------------------
 
 endmodule
-
-/*
-FSM
-random out
-button choose
-overtime return
-change
-S_MAIN_BUY
-S_MAIN_PAY
-S_MAIN_CLC
-S_MAIN_
-*/
