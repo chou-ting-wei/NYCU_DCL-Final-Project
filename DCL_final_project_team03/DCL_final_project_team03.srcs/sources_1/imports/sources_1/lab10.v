@@ -37,6 +37,7 @@ module lab10(
 
 // Declare system variables
 reg  [31:0] water_drop_clock;
+reg  [31:0] tea_drop_clock;
 // reg  [35:0] fish2_clock;
 // reg  [35:0] fish3_clock;
 // wire [9:0]  fish1_pos;
@@ -48,7 +49,6 @@ reg  [31:0] water_drop_clock;
 
 wire [9:0]  vend_pos;
 wire        vend_region;
-
 wire [9:0]  drop_pos;
 wire        drop_region;
 
@@ -165,16 +165,16 @@ localparam WATER_W      = 18;
 localparam WATER_H      = 27;
 reg [20:0] water_addr;
 
-localparam TEA_W      = 18;
-localparam TEA_H      = 27;
+localparam TEA_W      = 22;
+localparam TEA_H      = 18;
 reg [20:0] tea_addr;
 
-localparam JUICE_W      = 18;
+localparam JUICE_W      = 22;
 localparam JUICE_H      = 27;
 reg [20:0] juice_addr;
 
-localparam COKE_W      = 18;
-localparam COKE_H      = 27;
+localparam COKE_W      = 12;
+localparam COKE_H      = 24;
 reg [20:0] coke_addr;
 
 wire [3:0]  btn_level, btn_pressed;
@@ -598,6 +598,72 @@ always @(posedge clk or negedge reset_n) begin
     water_pos_reg <= 126 + offset;
   end
 end
+//-------------------------------------------------------
+// tea drop clock control
+reg tea_drop_speed;
+always @(posedge clk) begin
+  if(~reset_n) begin
+    tea_drop_clock <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0) begin
+    if(tea_drop_speed == 1 || tea_vpos > 160) begin
+      tea_drop_clock <= 0;
+    end
+    else if(tea_vpos > 160) begin
+      tea_drop_clock <= 0;
+    end
+    else begin
+      tea_drop_clock <= tea_drop_clock + 8;
+    end
+  end
+  else begin
+    tea_drop_clock <= 0;
+  end
+end
+// tea drop speed control
+always @(posedge clk) begin
+  if(~reset_n) begin
+    tea_drop_speed <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0) begin
+    if(tea_drop_speed == 1) begin
+      tea_drop_speed <= 0;
+    end
+    else if(tea_drop_clock[26:25] == 1) begin
+      tea_drop_speed <= 1;
+    end
+  end
+  else begin
+    tea_drop_speed <= 0;
+  end
+end
+// water drop vpos control
+always @(posedge clk) begin
+    if (~reset_n) begin
+      tea_vpos <= 10'd118;
+    end else begin
+      if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0) begin
+        if(tea_vpos > 160) begin
+          tea_vpos <= 10'd118;
+        end
+        else begin
+          tea_vpos <= tea_vpos + tea_drop_speed;
+        end
+      end
+      else begin
+        tea_vpos <= 10'd118;
+      end
+  end
+end
+// tea random x control
+reg [9:0] tea_pos_reg;
+always @(posedge clk or negedge reset_n) begin
+  if (~reset_n) begin
+    tea_pos_reg <= 176;
+  end else if (tea_vpos > 160) begin
+    tea_pos_reg <= 126 + offset;
+  end
+end
 // always @(posedge clk) begin
 //   if (~reset_n) begin
 //     fish1_clock <= 0;
@@ -778,6 +844,10 @@ always @ (posedge clk) begin
       pixel_water_addr <= ((pixel_y>>1) - water_vpos)*WATER_W +
                     ((pixel_x + (WATER_W*2-1) - water_pos)>>1);
     end
+    if (fall_tea_region) begin
+      pixel_tea_addr <= WATER_H * WATER_W + ((pixel_y>>1) - tea_vpos)*TEA_W +
+                    ((pixel_x + (TEA_W*2-1) - tea_pos)>>1);
+    end
   end
 end
 
@@ -796,6 +866,8 @@ always @(*) begin
   else
     if (drop_region && fall_water_region && data_water_out != 12'h0f0)
       rgb_next = data_water_out;
+    else if (drop_region && fall_tea_region && data_tea_out != 12'h0f0)
+      rgb_next = data_tea_out;
     else if (vend_region && data_vend_out != 12'h0f0)
       rgb_next = data_vend_out;
       // rgb_next = 12'hf00;
@@ -1191,7 +1263,7 @@ always @(posedge clk) begin
   end
   // remain constant minus
   else if (P == S_MAIN_DROP) begin
-    if(water_vpos > 160) begin
+    if(water_vpos > 160 || tea_vpos > 160) begin
       case(what_item_fall)
       FALL_WATER: begin
         remain_water_num = remain_water_num - 1;
