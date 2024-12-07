@@ -188,15 +188,38 @@ reg [9:0] drop_coke_vpos;
 // Note: System Verilog has an easier way to initialize an array,
 //       but we are using Verilog 2001 :(
 
+// integer k;
+// initial begin
+//   for (k = 0; k < 8; k = k + 1) begin
+//     fish1_addr[k] = VBUF_W * VBUF_H + FISH1_W * FISH1_H * k;
+//   end
+//   for (k = 0; k < 4; k = k + 1) begin
+//     fish2_addr[k] = FISH2_W * FISH2_H * k;
+//     fish3_addr[k] = FISH2_W * FISH2_H * 4 + FISH3_W * FISH3_H * k;
+//   end
+// end
+localparam water_vpos2   = 42;
+localparam WATER_W2 = 18;
+localparam WATER_H2 = 27;
+localparam juice_vpos2   = 42;
+localparam JUICE_W2 = 22;
+localparam JUICE_H2 = 27;
+localparam tea_vpos2   = 113;
+localparam TEA_W2 = 22;
+localparam TEA_H2 = 18;
+localparam coke_vpos2   = 107;
+localparam COKE_W2 = 12;
+localparam COKE_H2 = 24;
+
+reg [20:0]water_addr2;
+reg [20:0]juice_addr2;
+reg [20:0]tea_addr2;
+reg [20:0]coke_addr2;
+
 localparam vending_water_vpos   = 42;
 localparam vending_juice_vpos   = 50;
 localparam vending_tea_vpos   = 105;
 localparam vending_coke_vpos   = 107;
-
-reg [20:0] water_addr2;
-reg [20:0] juice_addr2;
-reg [20:0] tea_addr2;
-reg [20:0] coke_addr2;
 
 initial begin
   water_addr2 = 0;
@@ -332,10 +355,17 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 // or 10.49 msec
 
 assign vend_pos = 220;
+
+assign water_pos2 = 105;
+assign juice_pos2 = 192;
+assign tea_pos2 = 105;
+assign coke_pos2 = 182;
+
 assign vending_water_pos = 88;
 assign vending_juice_pos = 192;
 assign vending_tea_pos = 92;
 assign vending_coke_pos = 182;
+
 assign drop_pos = 176;
 
 assign drop_water_pos = water_pos_reg;
@@ -720,7 +750,13 @@ end
 
 // End of the AGU code.
 // ------------------------------------------------------------------------
-
+// ------------------------------------------------------------------------
+//deal with feature of sold_out
+wire water_sold_out;
+wire juice_sold_out;
+wire tea_sold_out;
+wire coke_sold_out;
+// ------------------------------------------------------------------------
 // ------------------------------------------------------------------------
 // Send the video data in the sram to the VGA controller
 always @(posedge clk) begin
@@ -730,7 +766,7 @@ end
 always @(*) begin
   if (~video_on)
     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
-  else
+  else begin
     if (drop_region && fall_water_region && data_water_out != 12'h0f0)
       rgb_next = data_water_out;
     else if (drop_region && fall_tea_region && data_tea_out != 12'h0f0)
@@ -748,12 +784,29 @@ always @(*) begin
       rgb_next = data_tea_out2;
     else if (vending_coke_region && data_coke_out2 != 12'h0f0)
       rgb_next = data_coke_out2;
-
+    
     else if (vend_region && data_vend_out != 12'h0f0)
-      rgb_next = data_vend_out;
-    else
-      rgb_next = 12'hed5;
-  
+      if(usr_sw[1])
+        rgb_next = data_vend_out;
+      else
+        rgb_next = 12'hfff - data_vend_out;
+    else if (block1_region)
+      rgb_next = 12'h555;
+    else if (block2_region)
+      rgb_next = 12'h555;
+    else if (block3_region)
+      rgb_next = 12'h555;
+    else if (block4_region)
+      rgb_next = 12'h555;
+    else if (sm_block_region)
+      rgb_next = 12'h555;
+    else begin
+      if(usr_sw[1])
+        rgb_next = 12'hed5;
+      else
+        rgb_next = 12'h29F;
+    end
+  end
 end
 // End of the video data display code.
 // ------------------------------------------------------------------------
@@ -775,6 +828,9 @@ assign usr_led = P;
 reg calc_done;
 reg [1:0] refund_valid;
 
+wire times_up;
+
+
 // ------------------------------------------------------------------------
 // FSM of the main controller
 always @(posedge clk) begin
@@ -790,10 +846,30 @@ always @(*) begin // FSM next-state logic
   case (P)
       S_MAIN_INIT:
         P_next = (init_counter < INIT_DELAY) ? S_MAIN_BUY : S_MAIN_INIT;
-      S_MAIN_BUY:
-        P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_BUY;
-      S_MAIN_PAY:
-        P_next = (btn_pressed[3]) ? S_MAIN_DROP : S_MAIN_PAY;
+
+      S_MAIN_BUY:begin
+        if(times_up)begin
+          P_next = S_MAIN_INIT;
+        end
+        else if(btn_pressed[3])begin
+          P_next = S_MAIN_PAY;
+        end
+        else begin
+          P_next = S_MAIN_BUY;
+        end
+      end
+      S_MAIN_PAY:begin
+        if(times_up)begin
+          P_next = S_MAIN_INIT;
+        end
+        else if(btn_pressed[3])begin
+          P_next = S_MAIN_CALC;
+        end
+        else begin
+          P_next = S_MAIN_PAY;
+        end
+      end
+
       S_MAIN_CALC: begin
         if (calc_done) begin
           if (refund_valid == 2'b10) begin
@@ -836,10 +912,14 @@ reg [8:0] total_amount; // item value
 reg [3:0] water_num, tea_num, juice_num, coke_num; // we have how many coin
 reg [3:0] used_water_num, used_tea_num, used_juice_num, used_coke_num; // we have used how many coin
 reg [1:0] item_pointer;
+assign water_sold_out = (water_num == used_water_num);
+assign juice_sold_out = (juice_num == used_juice_num);
+assign tea_sold_out = (tea_num == used_tea_num);
+assign coke_sold_out = (cola_num == used_cola_num);
 localparam [1:0] CHOOSE_WATER = 2'd0,
+                 CHOOSE_TEA = 2'd2,
                  CHOOSE_JUICE = 2'd1,
-                 CHOOSE_TEA   = 2'd2,
-                 CHOOSE_coke  = 2'd3;
+                 CHOOSE_COLA = 2'd3;
 
 // choose what item
 always @(posedge clk) begin
@@ -868,6 +948,12 @@ always @(posedge clk) begin
     used_juice_num <= 0;
     used_coke_num <= 0;
     total_amount <= 0;
+  end
+  else if (P == S_MAIN_INIT)begin
+    used_water_num <= 0;
+    used_tea_num <= 0;
+    used_juice_num <= 0;
+    used_cola_num <= 0;
   end
   else if (P == S_MAIN_BUY) begin 
     if (btn_pressed[2]) begin
@@ -924,6 +1010,7 @@ end
 
 // ------------------------------------------------------------------------
 // S_MAIN_PAY
+reg [7:0] used_total;
 reg [3:0] coin_one, coin_five, coin_ten, coin_hundred; // we have how many coin
 reg [3:0] used_coin_one, used_coin_five, used_coin_ten, used_coin_hundred; // we have used how many coin
 reg [1:0] coin_pointer; // choose what coin to pay
@@ -948,6 +1035,12 @@ end
 
 always @(posedge clk) begin
   if (~reset_n)begin
+    used_coin_one <= 0;
+    used_coin_five <= 0;
+    used_coin_ten <= 0;
+    used_coin_hundred <= 0;
+  end
+  else if (P == S_MAIN_INIT)begin
     used_coin_one <= 0;
     used_coin_five <= 0;
     used_coin_ten <= 0;
@@ -998,14 +1091,52 @@ always @(posedge clk) begin
         endcase
       end
     end
+    used_total = used_coin_one * 1 + used_coin_five * 5 + 
+                used_coin_ten * 10 + used_coin_hundred * 100;
   end
 end
+
+//total counter
+wire[3:0]hundreds_num,tens_num,ones_num;
+assign hundreds_num = used_total/100;
+assign tens_num = (used_total%100)/10;
+assign ones_num = used_total%10;
+
 // ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
+// timer
+reg [31:0]process_timer;
+reg [6:0]count_down;
+
+wire[3:0]time_tens_num,time_ones_num;
+assign time_tens_num = count_down/10;
+assign time_ones_num = count_down%10;
+
+assign times_up = (count_down == 0);
+always  @(posedge clk)begin
+  if(~reset_n || times_up)begin
+    process_timer <= 0;
+    count_down <= 99;
+  end 
+  else if((P == S_MAIN_BUY || P == S_MAIN_PAY) && (count_down > 0))begin
+    if(btn_pressed[0] || btn_pressed[1] || btn_pressed[2] || btn_pressed[3])begin
+      process_timer <= 0;
+      count_down <= 99;
+    end
+    else if(process_timer == 99999999)begin
+      process_timer <= 0;
+      count_down <= count_down - 1; 
+    end 
+    else begin
+      process_timer <= process_timer + 1;
+    end
+  end
+end
 
 // ------------------------------------------------------------------------
 // S_MAIN_CALC
 
-reg [7:0] used_total;
+
 reg [3:0] mach_coin_one, mach_coin_five, mach_coin_ten, mach_coin_hundred;
 reg [3:0] ret_coin_one, ret_coin_five, ret_coin_ten, ret_coin_hundred;
 reg [8:0] refund;
@@ -1027,8 +1158,7 @@ always @ (posedge clk) begin
     coin_ten <= 9;
     coin_hundred <= 9;
   end else begin
-    used_total = used_coin_one * 1 + used_coin_five * 5 + 
-                used_coin_ten * 10 + used_coin_hundred * 100;
+    
                     
     if (used_total >= total_amount) begin
         refund = used_total - total_amount;
