@@ -87,6 +87,21 @@ wire        money_region2;
 wire [9:0]  sm_block_pos;
 wire        sm_block_region;
 
+wire [9:0]  rest_pos;
+wire        rest_region;
+
+wire [9:0]  num0_1_pos;
+wire        num0_1_region;
+
+wire [9:0]  num0_2_pos;
+wire        num0_2_region;
+
+wire [9:0]  num0_3_pos;
+wire        num0_3_region;
+
+wire [9:0]  num0_4_pos;
+wire        num0_4_region;
+
 wire [9:0]  num1_1_pos;
 wire        num1_1_region;
 
@@ -216,6 +231,10 @@ wire [20:0] sram_select_addr;
 wire [11:0] data_select_in;
 wire [11:0] data_select_out;
 
+wire [20:0] sram_rest_addr;
+wire [11:0] data_rest_in;
+wire [11:0] data_rest_out;
+
 wire sram_we, sram_en;
 
 // General VGA control signals
@@ -233,11 +252,6 @@ reg  [11:0] rgb_reg;  // RGB value for the current pixel
 reg  [11:0] rgb_next; // RGB value for the next pixel
   
 // Application-specific VGA signals
-// reg  [20:0] pixel_f1_addr;
-// reg  [20:0] pixel_f2_addr;
-// reg  [20:0] pixel_f3_addr;
-// reg  [20:0] pixel_bg_addr;
-
 reg  [20:0] pixel_vend_addr;
 reg  [20:0] pixel_water_addr2;
 reg  [20:0] pixel_juice_addr2;
@@ -245,30 +259,6 @@ reg  [20:0] pixel_tea_addr2;
 reg  [20:0] pixel_coke_addr2;
 reg  [20:0] pixel_drop_addr;
 
-// reg  [20:0] pixel_num1_1_addr;
-// reg  [20:0] pixel_num1_2_addr;
-// reg  [20:0] pixel_num1_3_addr;
-// reg  [20:0] pixel_num1_4_addr;
-// reg  [20:0] pixel_num1_5_addr;
-// reg  [20:0] pixel_num1_6_addr;
-// reg  [20:0] pixel_num1_7_addr;
-// reg  [20:0] pixel_num1_8_addr;
-// reg  [20:0] pixel_num2_1_addr;
-// reg  [20:0] pixel_num2_2_addr;
-// reg  [20:0] pixel_num2_3_addr;
-// reg  [20:0] pixel_num2_4_addr;
-// reg  [20:0] pixel_num2_5_addr;
-// reg  [20:0] pixel_num2_6_addr;
-// reg  [20:0] pixel_num2_7_addr;
-// reg  [20:0] pixel_num2_8_addr;
-// reg  [20:0] pixel_num3_1_addr;
-// reg  [20:0] pixel_num3_2_addr;
-// reg  [20:0] pixel_num3_3_addr;
-// reg  [20:0] pixel_num3_4_addr;
-// reg  [20:0] pixel_num4_1_addr;
-// reg  [20:0] pixel_num4_2_addr;
-// reg  [20:0] pixel_num4_3_addr;
-// reg  [20:0] pixel_num4_4_addr;
 
 reg  [20:0] pixel_num_addr;
 
@@ -276,6 +266,8 @@ reg  [20:0] pixel_select_top_addr;
 reg  [20:0] pixel_select_addr;
 reg  [20:0] pixel_money_top_addr;
 reg  [20:0] pixel_money_addr;
+
+reg  [20:0] pixel_rest_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -320,8 +312,12 @@ localparam sm_block_vpos  = 190;
 localparam SM_BLOCK_W      = 100;
 localparam SM_BLOCK_H      = 40;
 
-// left upper
-// 15/35 55/75 
+localparam rest_vpos  = 190;
+
+localparam num0_1_vpos  = 190+30;
+localparam num0_2_vpos  = 190+30;
+localparam num0_3_vpos  = 190+30;
+localparam num0_4_vpos  = 190+30;
 
 localparam num1_1_vpos  = 50;
 localparam num1_2_vpos  = 50;
@@ -449,6 +445,10 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
 
+wire [20:0] sram_tmp_addr;
+wire [11:0] data_tmp_in;
+wire [11:0] data_tmp_out;
+
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H+NUM_W * NUM_H * 10), .FILE("images.mem"))
   ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
@@ -474,6 +474,11 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(TEA_W2*TEA_H2+COKE_W2*COKE_H2
   ram_5 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_tea_addr2), .data_i_1(data_tea_in2), .data_o_1(data_tea_out2),
           .addr_2(sram_coke_addr2), .data_i_2(data_coke_in2), .data_o_2(data_coke_out2));
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(SM_BLOCK_H*SM_BLOCK_W), .FILE("images6.mem"))
+  ram_6 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_rest_addr), .data_i_1(data_rest_in), .data_o_1(data_rest_out),
+          .addr_2(sram_tmp_addr), .data_i_2(data_tmp_in), .data_o_2(data_tmp_out)); // unused
 
 
 assign sram_we = usr_sw[3]; // In this demo, we do not write the SRAM. However, if
@@ -516,6 +521,9 @@ assign data_money_in = 12'h000;
 assign sram_num_addr = pixel_num_addr;
 assign data_num_in = 12'h000;
 
+assign sram_rest_addr = pixel_rest_addr;
+assign data_rest_in = 12'h000;
+
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -549,33 +557,38 @@ assign money_top_pos = 620;
 assign money_pos1 = 620;
 assign money_pos2 = 620;
 
-assign num1_1_pos = 230+44;
-assign num1_2_pos = 230+84;
-assign num1_3_pos = 230+124;
-assign num1_4_pos = 230+164;
-assign num1_5_pos = 230+204;
-assign num1_6_pos = 230+244;
-assign num1_7_pos = 230+284;
-assign num1_8_pos = 230+324;
-assign num2_1_pos = 230+44;
-assign num2_2_pos = 230+84;
-assign num2_3_pos = 230+124;
-assign num2_4_pos = 230+164;
-assign num2_5_pos = 230+204;
-assign num2_6_pos = 230+244;
-assign num2_7_pos = 230+284;
-assign num2_8_pos = 230+324;
-assign num3_1_pos = 230+64;
-assign num3_2_pos = 230+144;
-assign num3_3_pos = 230+224;
-assign num3_4_pos = 230+304;
-assign num4_1_pos = 230+64;
-assign num4_2_pos = 230+144;
-assign num4_3_pos = 230+224;
-assign num4_4_pos = 230+304;
+assign num1_1_pos = 235+44;
+assign num1_2_pos = 235+84;
+assign num1_3_pos = 235+124;
+assign num1_4_pos = 235+164;
+assign num1_5_pos = 235+204;
+assign num1_6_pos = 235+244;
+assign num1_7_pos = 235+284;
+assign num1_8_pos = 235+324;
+assign num2_1_pos = 235+44;
+assign num2_2_pos = 235+84;
+assign num2_3_pos = 235+124;
+assign num2_4_pos = 235+164;
+assign num2_5_pos = 235+204;
+assign num2_6_pos = 235+244;
+assign num2_7_pos = 235+284;
+assign num2_8_pos = 235+324;
+assign num3_1_pos = 235+64;
+assign num3_2_pos = 235+144;
+assign num3_3_pos = 235+224;
+assign num3_4_pos = 235+304;
+assign num4_1_pos = 235+64;
+assign num4_2_pos = 235+144;
+assign num4_3_pos = 235+224;
+assign num4_4_pos = 235+304;
 
 //left-top
 // 15x30 30x30 45x30 75x30
+assign rest_pos = 220;
+assign num0_1_pos = 20+40;
+assign num0_2_pos = 20+70;
+assign num0_3_pos = 20+110;
+assign num0_4_pos = 20+170;
 
 // End of the animation clock code.
 // ------------------------------------------------------------------------
@@ -609,6 +622,26 @@ assign coke_region2 =
 assign drop_region =
           pixel_y >= (drop_vpos<<1) && pixel_y < (drop_vpos+DROP_H)<<1 &&
           (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
+
+assign rest_region =
+          pixel_y >= (rest_vpos<<1) && pixel_y < (rest_vpos+SM_BLOCK_H)<<1 &&
+          (pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1;
+
+assign num0_1_region =
+          pixel_y >= (num0_1_vpos<<1) && pixel_y < (num0_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_1_pos && pixel_x < num0_1_pos + 1;
+
+assign num0_2_region =
+          pixel_y >= (num0_2_vpos<<1) && pixel_y < (num0_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_2_pos && pixel_x < num0_2_pos + 1;
+
+assign num0_3_region =
+          pixel_y >= (num0_3_vpos<<1) && pixel_y < (num0_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_3_pos && pixel_x < num0_3_pos + 1;
+
+assign num0_4_region =
+          pixel_y >= (num0_4_vpos<<1) && pixel_y < (num0_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num0_4_pos && pixel_x < num0_4_pos + 1;
 
 assign num1_1_region =
           pixel_y >= (num1_1_vpos<<1) && pixel_y < (num1_1_vpos+NUM_H)<<1 &&
@@ -834,7 +867,7 @@ function [20:0] select_base_addr;
       4'd7: select_base_addr = seven_addr;
       4'd8: select_base_addr = eight_addr;
       4'd9: select_base_addr = nine_addr;
-      default: select_base_addr = zero_addr; // 預設值
+      default: select_base_addr = zero_addr;
     endcase
   end
 endfunction
@@ -891,6 +924,35 @@ always @ (posedge clk) begin
     if (money_region2) begin
       pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos2) * BLOCK_W +
                             ((pixel_x + (BLOCK_W * 2 - 1) - money_pos2) >> 1);
+    end
+
+    if (rest_region) begin
+      pixel_rest_addr <=  ((pixel_y >> 1) - rest_vpos) * SM_BLOCK_W +
+                            ((pixel_x + (SM_BLOCK_W * 2 - 1) - sm_block_pos) >> 1);
+    end
+    
+    if (num0_1_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_one) + 
+                            ((pixel_y >> 1) - num0_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_1_pos) >> 1);
+    end
+
+    if (num0_2_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_five) + 
+                            ((pixel_y >> 1) - num0_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_2_pos) >> 1);
+    end
+
+    if (num0_3_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_ten) + 
+                            ((pixel_y >> 1) - num0_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_3_pos) >> 1);
+    end
+
+    if (num0_4_region) begin
+      pixel_num_addr <= select_base_addr(mach_coin_hundred) + 
+                            ((pixel_y >> 1) - num0_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - num0_4_pos) >> 1);
     end
 
     if (num1_1_region) begin
@@ -1029,9 +1091,9 @@ always @(*) begin
   if (~video_on)
     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
   else
-    if (drop_region)
-      rgb_next = 12'hf00;
-    else if (water_region2 && data_water_out2 != 12'h0f0)
+    // if (drop_region)
+    //   rgb_next = 12'hf00;
+    if (water_region2 && data_water_out2 != 12'h0f0)
       rgb_next = data_water_out2;
     else if (juice_region2 && data_juice_out2 != 12'h0f0)
       rgb_next = data_juice_out2;
@@ -1049,6 +1111,15 @@ always @(*) begin
     // if (vend_region)
     //   // rgb_next = data_vend_out;
     //   rgb_next = 12'hf00;
+    else if (num0_1_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num0_2_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num0_3_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num0_4_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+
     else if (num1_1_region && data_num_out != 12'h0f0)
       rgb_next = data_num_out;
     else if (num1_2_region && data_num_out != 12'h0f0)
@@ -1106,6 +1177,9 @@ always @(*) begin
       rgb_next = 12'h555;
     else if (block4_region)
       rgb_next = 12'h555;
+    
+    else if (rest_region && data_rest_out != 12'h0f0)
+      rgb_next = data_rest_out;
 
     else if (select_top_region && data_select_top_out != 12'h0f0)
       rgb_next = data_select_top_out;
