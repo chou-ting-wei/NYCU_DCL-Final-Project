@@ -36,7 +36,7 @@ module lab10(
 );
 
 // Declare system variables
-reg  [31:0] drop_clock;
+reg  [31:0] water_drop_clock;
 // reg  [35:0] fish2_clock;
 // reg  [35:0] fish3_clock;
 // wire [9:0]  fish1_pos;
@@ -52,8 +52,18 @@ wire        vend_region;
 wire [9:0]  drop_pos;
 wire        drop_region;
 
+// falling item var
 wire [9:0]  water_pos;
 wire        fall_water_region;
+
+wire [9:0]  tea_pos;
+wire        fall_tea_region;
+
+wire [9:0]  juice_pos;
+wire        fall_juice_region;
+
+wire [9:0]  coke_pos;
+wire        fall_coke_region;
 
 // declare SRAM control signals
 wire [20:0] sram_f1_addr;
@@ -84,6 +94,14 @@ wire [20:0] sram_tea_addr;
 wire [11:0] data_tea_in;
 wire [11:0] data_tea_out;
 
+wire [20:0] sram_juice_addr;
+wire [11:0] data_juice_in;
+wire [11:0] data_juice_out;
+
+wire [20:0] sram_coke_addr;
+wire [11:0] data_coke_in;
+wire [11:0] data_coke_out;
+
 wire        sram_we, sram_en;
 
 // General VGA control signals
@@ -109,6 +127,9 @@ reg  [11:0] rgb_next; // RGB value for the next pixel
 reg  [20:0] pixel_vend_addr;
 reg  [20:0] pixel_drop_addr;
 reg  [20:0] pixel_water_addr;
+reg  [20:0] pixel_tea_addr;
+reg  [20:0] pixel_juice_addr;
+reg  [20:0] pixel_coke_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -148,6 +169,14 @@ localparam TEA_W      = 18;
 localparam TEA_H      = 27;
 reg [20:0] tea_addr;
 
+localparam JUICE_W      = 18;
+localparam JUICE_H      = 27;
+reg [20:0] juice_addr;
+
+localparam COKE_W      = 18;
+localparam COKE_H      = 27;
+reg [20:0] coke_addr;
+
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
 
@@ -156,6 +185,9 @@ reg  [3:0]  prev_btn_level;
 // reg [2:0] current_fish = 3'd0;
 
 reg [9:0] water_vpos;
+reg [9:0] tea_vpos;
+reg [9:0] juice_vpos;
+reg [9:0] coke_vpos;
 // reg [7:0] fish2_vpos = 8'd80; // Vertical position of fish2
 // reg [7:0] fish3_vpos = 8'd120; // Vertical position of fish3
 // Direction: 0 = left, 1 = right
@@ -346,7 +378,6 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H + TEA_W*TEA_H
           .addr_1(sram_water_addr), .data_i_1(data_water_in), .data_o_1(data_water_out),
           .addr_2(sram_tea_addr), .data_i_2(data_tea_in), .data_o_2(data_tea_out));
 
-
 // assign sram_we = usr_sw[0]; // In this demo, we do not write the SRAM. However, if
 //                                   // you set 'sram_we' to 0, Vivado fails to synthesize
 //                                   // ram0 as a BRAM -- this is a bug in Vivado.
@@ -365,8 +396,15 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H + TEA_W*TEA_H
 
 assign sram_vend_addr = pixel_vend_addr;
 assign data_vend_in = 12'h000;
+
 assign sram_water_addr = pixel_water_addr;
 assign data_water_in = 12'h000;
+assign sram_tea_addr = pixel_tea_addr;
+assign data_tea_in = 12'h000;
+assign sram_juice_addr = pixel_juice_addr;
+assign data_juice_in = 12'h000;
+assign sram_coke_addr = pixel_coke_addr;
+assign data_coke_in = 12'h000;
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -394,6 +432,9 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 assign vend_pos = 220;
 assign drop_pos = 176;
 assign water_pos = 176; // right bound
+assign tea_pos = 164; // right bound
+assign juice_pos = 152; // right bound
+assign coke_pos = 144; // right bound
 // always @(*) begin
 //   case (speed_level[0])
 //     3'd0: begin
@@ -481,53 +522,61 @@ assign water_pos = 176; // right bound
 //   endcase
 // end
 
-// drop clock control
-reg drop_speed;
+// water drop clock control
+reg water_drop_speed;
 always @(posedge clk) begin
   if(~reset_n) begin
-    drop_clock <= 0;
+    water_drop_clock <= 0;
   end
   else if (P == S_MAIN_DROP && remain_water_num > 0) begin
-    if(drop_speed == 1 || water_vpos > 158) begin
-      drop_clock <= 0;
+    if(water_drop_speed == 1 || water_vpos > 160) begin
+      water_drop_clock <= 0;
     end
-    else if(water_vpos > 158) begin
-      drop_clock <= 0;
+    else if(water_vpos > 160) begin
+      water_drop_clock <= 0;
     end
     else begin
-      drop_clock <= drop_clock + 1;
+      water_drop_clock <= water_drop_clock + 4;
     end
   end
+  else begin
+    water_drop_clock <= 0;
+  end
 end
-
+// water drop speed control
 always @(posedge clk) begin
   if(~reset_n) begin
-    drop_speed <= 0;
+    water_drop_speed <= 0;
   end
   else if (P == S_MAIN_DROP && remain_water_num > 0) begin
-    if(drop_speed == 1) begin
-      drop_speed <= 0;
+    if(water_drop_speed == 1) begin
+      water_drop_speed <= 0;
     end
-    else if(drop_clock[25:24]==1) begin
-      drop_speed <= 1;
+    else if(water_drop_clock[26:25] == 1) begin
+      water_drop_speed <= 1;
     end
   end
+  else begin
+    water_drop_speed <= 0;
+  end
 end
-
+// water drop vpos control
 always @(posedge clk) begin
     if (~reset_n) begin
       water_vpos <= 10'd118;
     end else begin
-     // Handle Fish Raising (Button1)
       if (P == S_MAIN_DROP && remain_water_num > 0) begin
-        if(water_vpos > 158) begin
+        if(water_vpos > 160) begin
           water_vpos <= 10'd118;
         end
         else begin
-          water_vpos <= water_vpos + drop_speed;
+          water_vpos <= water_vpos + water_drop_speed;
         end
       end
-    end
+      else begin
+        water_vpos <= 10'd118;
+      end
+  end
 end
 // always @(posedge clk) begin
 //   if (~reset_n) begin
@@ -635,6 +684,21 @@ assign fall_water_region =
           pixel_y >= (water_vpos<<1) && 
           pixel_y < ((water_vpos + WATER_H)<<1) &&
           (pixel_x + 35) >= water_pos && pixel_x < (water_pos + 1);
+
+assign fall_tea_region =
+          pixel_y >= (tea_vpos<<1) && 
+          pixel_y < ((tea_vpos + TEA_H)<<1) &&
+          (pixel_x + 43) >= tea_pos && pixel_x < (tea_pos + 1);
+
+assign fall_juice_region =
+          pixel_y >= (juice_vpos<<1) && 
+          pixel_y < ((juice_vpos + JUICE_H)<<1) &&
+          (pixel_x + 43) >= juice_pos && pixel_x < (juice_pos + 1);
+
+assign fall_coke_region =
+          pixel_y >= (coke_vpos<<1) && 
+          pixel_y < ((coke_vpos + COKE_H)<<1) &&
+          (pixel_x + 23) >= coke_pos && pixel_x < (coke_pos + 1);
 // always @ (posedge clk) begin
 // if (~reset_n) begin
 //     pixel_f1_addr <= 0;
@@ -687,12 +751,12 @@ always @ (posedge clk) begin
     pixel_vend_addr <= 0;
   else begin
     if (vend_region) begin
-      pixel_vend_addr <= ((pixel_y>>1)-vend_vpos)*VEND_W +
+      pixel_vend_addr <= ((pixel_y>>1) - vend_vpos)*VEND_W +
                     ((pixel_x +(VEND_W*2-1)-vend_pos)>>1);
     end
     if (fall_water_region) begin
       pixel_water_addr <= ((pixel_y>>1) - water_vpos)*WATER_W +
-                    ((pixel_x +(WATER_W*2-1)-water_pos)>>1);
+                    ((pixel_x + (WATER_W*2-1) - water_pos)>>1);
     end
   end
 end
@@ -710,8 +774,8 @@ always @(*) begin
   if (~video_on)
     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
   else
-    if (fall_water_region)
-      rgb_next = 12'h00f;
+    if (fall_water_region && data_water_out != 12'h0f0)
+      rgb_next = data_water_out;
     else if (drop_region)
       rgb_next = 12'hf00;
     else if (vend_region && data_vend_out != 12'h0f0)
@@ -808,17 +872,17 @@ end
 localparam WATER_VALUE = 3,
            TEA_VALUE = 5,
            JUICE_VALUE = 10,
-           COLA_VALUE = 20;
+           coke_VALUE = 20;
 
 // S_MAIN_BUY
 reg [8:0] total_amount; // item value
-reg [3:0] water_num, tea_num, juice_num, cola_num; // we have how many coin
-reg [3:0] used_water_num, used_tea_num, used_juice_num, used_cola_num; // we have used how many coin
+reg [3:0] water_num, tea_num, juice_num, coke_num; // we have how many coin
+reg [3:0] used_water_num, used_tea_num, used_juice_num, used_coke_num; // we have used how many coin
 reg [1:0] item_pointer;
 localparam [1:0] CHOOSE_WATER = 2'd0,
                  CHOOSE_TEA = 2'd1,
                  CHOOSE_JUICE = 2'd2,
-                 CHOOSE_COLA = 2'd3;
+                 CHOOSE_coke = 2'd3;
 
 // choose what item
 always @(posedge clk) begin
@@ -841,11 +905,11 @@ always @(posedge clk) begin
     water_num <= 9;
     tea_num <= 9;
     juice_num <= 9;
-    cola_num <= 9;
+    coke_num <= 9;
     used_water_num <= 0;
     used_tea_num <= 0;
     used_juice_num <= 0;
-    used_cola_num <= 0;
+    used_coke_num <= 0;
     total_amount <= 0;
   end
   else if (P == S_MAIN_BUY) begin 
@@ -865,9 +929,9 @@ always @(posedge clk) begin
             if(used_juice_num < juice_num)
               used_juice_num <= used_juice_num + 1;
           end
-          CHOOSE_COLA: begin
-            if(used_cola_num < cola_num)
-              used_cola_num <= used_cola_num + 1;
+          CHOOSE_coke: begin
+            if(used_coke_num < coke_num)
+              used_coke_num <= used_coke_num + 1;
           end
         endcase
       end
@@ -886,16 +950,16 @@ always @(posedge clk) begin
             if(used_juice_num > 0)
               used_juice_num <= used_juice_num - 1;
           end
-          CHOOSE_COLA: begin
-            if(used_cola_num > 0)
-              used_cola_num <= used_cola_num - 1;
+          CHOOSE_coke: begin
+            if(used_coke_num > 0)
+              used_coke_num <= used_coke_num - 1;
           end
         endcase
       end
     end
     else if (btn_pressed[3]) begin
       total_amount <= used_water_num * WATER_VALUE + used_tea_num * TEA_VALUE+
-                      used_juice_num * JUICE_VALUE + used_cola_num * COLA_VALUE;
+                      used_juice_num * JUICE_VALUE + used_coke_num * coke_VALUE;
     end
   end
 end
@@ -1084,44 +1148,44 @@ reg [3:0] what_item_fall;
 reg [3:0] remain_water_num, 
           remain_tea_num, 
           remain_juice_num, 
-          remain_cola_num; 
+          remain_coke_num; 
           // how many item remain to fall
-localparam [1:0] FALL_WATER = 0,
-                 FALL_TEA = 1,
-                 FALL_JUICE = 2,
-                 FALL_COLA = 3;
+localparam [1:0] FALL_WATER = 2'd0,
+                 FALL_TEA = 2'd1,
+                 FALL_JUICE = 2'd2,
+                 FALL_coke = 2'd3;
 
 // judge whether the item touched the bottom
 // need modify: initial drop y, bottom location
-always @(*) begin
+always @(posedge clk) begin
   if(~reset_n) begin
     remain_water_num <= 0;
     remain_tea_num <= 0;
     remain_juice_num <= 0;
-    remain_cola_num <= 0;
+    remain_coke_num <= 0;
   end
   // set remain constant
   else if (P == S_MAIN_PAY && P_next == S_MAIN_DROP) begin
     remain_water_num <= used_water_num;
     remain_tea_num <= used_tea_num;
     remain_juice_num <= used_juice_num;
-    remain_cola_num <= used_cola_num;
+    remain_coke_num <= used_coke_num;
   end
   // remain constant minus
   else if (P == S_MAIN_DROP) begin
-    if(water_vpos > 158) begin
+    if(water_vpos > 160) begin
       case(what_item_fall)
       FALL_WATER: begin
-        remain_water_num <= remain_water_num - 1;
+        remain_water_num = remain_water_num - 1;
       end
       FALL_TEA: begin
-        remain_tea_num <= remain_tea_num - 1;
+        remain_tea_num = remain_tea_num - 1;
       end
       FALL_JUICE: begin
-        remain_juice_num <= remain_juice_num - 1;
+        remain_juice_num = remain_juice_num - 1;
       end
-      FALL_COLA: begin
-        remain_cola_num <= remain_cola_num - 1;
+      FALL_coke: begin
+        remain_coke_num = remain_coke_num - 1;
       end
       endcase
     end
@@ -1130,9 +1194,9 @@ end
 
 // control what item to fall
 // need modify: item image
-always @(*) begin
+always @(posedge clk) begin
   if(~reset_n) begin
-    what_item_fall <= 10;
+    what_item_fall <= 0;
   end
   else if (P == S_MAIN_DROP) begin
     if (remain_water_num > 0) begin
@@ -1147,9 +1211,9 @@ always @(*) begin
       // use juice image to fall
       what_item_fall <= FALL_JUICE;
     end
-    else if (remain_cola_num > 0) begin
-      // use cola image to fall
-      what_item_fall <= FALL_COLA;
+    else if (remain_coke_num > 0) begin
+      // use coke image to fall
+      what_item_fall <= FALL_coke;
     end
   end
 end
