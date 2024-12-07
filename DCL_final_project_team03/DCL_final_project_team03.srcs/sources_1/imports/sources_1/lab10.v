@@ -484,8 +484,8 @@ reg [20:0]tea_addr2;
 reg [20:0]coke_addr2;
 
 localparam vending_water_vpos   = 42;
-localparam vending_juice_vpos   = 50;
-localparam vending_tea_vpos   = 105;
+localparam vending_juice_vpos   = 42;
+localparam vending_tea_vpos   = 113;
 localparam vending_coke_vpos   = 107;
 
 initial begin
@@ -1550,26 +1550,46 @@ always @ (posedge clk) begin
                               ((pixel_y >> 1) - num3_4_vpos) * NUM_W +
                               ((pixel_x + (NUM_W * 2 - 1) - num3_4_pos) >> 1);
       end
-      // if (num4_1_region) begin
-      //   pixel_num_addr <= select_base_addr() + 
-      //                         ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
-      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
-      // end
-      // if (num4_2_region) begin
-      //   pixel_num_addr <= select_base_addr() +
-      //                         ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
-      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
-      // end
-      // if (num4_3_region) begin
-      //   pixel_num_addr <= select_base_addr() +
-      //                         ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
-      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
-      // end
-      // if (num4_4_region) begin
-      //   pixel_num_addr <= select_base_addr() +
-      //                         ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
-      //                         ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
-      // end
+      if (num4_1_region) begin
+        if (P == S_MAIN_DROP)
+          pixel_num_addr <= select_base_addr(used_water_num - remain_water_num) +
+                              ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
+        else
+          pixel_num_addr <= select_base_addr(0) +
+                              ((pixel_y >> 1) - num4_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_1_pos) >> 1);
+      end
+      if (num4_2_region) begin
+        if (P == S_MAIN_DROP)
+          pixel_num_addr <= select_base_addr(used_juice_num - remain_juice_num) +
+                              ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
+        else
+          pixel_num_addr <= select_base_addr(0) +
+                              ((pixel_y >> 1) - num4_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_2_pos) >> 1);
+      end
+      if (num4_3_region) begin
+        if (P == S_MAIN_DROP)
+          pixel_num_addr <= select_base_addr(used_tea_num - remain_tea_num) +
+                              ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
+        else
+          pixel_num_addr <= select_base_addr(0) +
+                              ((pixel_y >> 1) - num4_3_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_3_pos) >> 1);
+      end
+      if (num4_4_region) begin
+        if (P == S_MAIN_DROP)
+          pixel_num_addr <= select_base_addr(used_coke_num - remain_coke_num) +
+                              ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
+        else
+          pixel_num_addr <= select_base_addr(0) +
+                              ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
+      end
       if (slash1_1_region) begin
         pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_1_vpos) * NUM_W +
                               ((pixel_x + (NUM_W * 2 - 1) - slash1_1_pos) >> 1);
@@ -1601,7 +1621,7 @@ always @ (posedge clk) begin
       if (slash2_4_region) begin
         pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_4_vpos) * NUM_W +
                               ((pixel_x + (NUM_W * 2 - 1) - slash2_4_pos) >> 1);
-
+      end
       if (vending_tea_region) begin
         pixel_tea_addr2 <= ((pixel_y>>1)-vending_tea_vpos)*TEA_W +
                       ((pixel_x +(TEA_W*2-1)-vending_tea_pos)>>1);
@@ -1609,7 +1629,6 @@ always @ (posedge clk) begin
       if (vending_coke_region) begin
         pixel_coke_addr2 <= coke_addr2+((pixel_y>>1)-vending_coke_vpos)*COKE_W +
                       ((pixel_x +(COKE_W*2-1)-vending_coke_pos)>>1);
-      end
     end
   end
 end
@@ -2117,17 +2136,15 @@ always @ (posedge clk) begin
     ret_coin_hundred <= 4'd0;
     refund_valid     <= 2'b00;
     calc_done        <= 1'b0;
-    mach_coin_one    <= 4'd9;
-    mach_coin_five   <= 4'd9;
-    mach_coin_ten    <= 4'd9;
-    mach_coin_hundred<= 4'd9;
-    coin_one <= 9;
-    coin_five <= 9;
-    coin_ten <= 9;
-    coin_hundred <= 9;
-  end else begin
-    
-                    
+    mach_coin_one    <= 4'd4;
+    mach_coin_five   <= 4'd6;
+    mach_coin_ten    <= 4'd7;
+    mach_coin_hundred<= 4'd3;
+    coin_one <= 5;
+    coin_five <= 3;
+    coin_ten <= 2;
+    coin_hundred <= 1;
+  end else if (P == S_MAIN_CALC) begin      
     if (used_total >= total_amount) begin
         refund = used_total - total_amount;
         
