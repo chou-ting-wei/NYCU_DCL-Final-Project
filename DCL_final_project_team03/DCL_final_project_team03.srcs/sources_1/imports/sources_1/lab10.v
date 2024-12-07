@@ -52,6 +52,21 @@ wire        vend_region;
 wire [9:0]  drop_pos;
 wire        drop_region;
 
+wire [9:0]  block1_pos;
+wire        block1_region;
+
+wire [9:0]  block2_pos;
+wire        block2_region;
+
+wire [9:0]  block3_pos;
+wire        block3_region;
+
+wire [9:0]  block4_pos;
+wire        block4_region;
+
+wire [9:0]  sm_block_pos;
+wire        sm_block_region;
+
 // declare SRAM control signals
 wire [20:0] sram_f1_addr;
 wire [11:0] data_f1_in;
@@ -96,7 +111,6 @@ reg  [11:0] rgb_next; // RGB value for the next pixel
 // reg  [20:0] pixel_bg_addr;
 
 reg  [20:0] pixel_vend_addr;
-reg  [20:0] pixel_drop_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -126,7 +140,17 @@ reg [20:0] vend_addr;
 localparam drop_vpos   = 145;
 localparam DROP_W      = 56;
 localparam DROP_H      = 13;
-reg [20:0] drop_addr;
+
+localparam block1_vpos  = 10;
+localparam block2_vpos  = 67;
+localparam block3_vpos  = 124;
+localparam block4_vpos  = 181;
+localparam BLOCK_W      = 190;
+localparam BLOCK_H      = 50;
+
+localparam sm_block_vpos  = 190;
+localparam SM_BLOCK_W      = 100;
+localparam SM_BLOCK_H      = 40;
 
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
@@ -373,6 +397,11 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 
 assign vend_pos = 220;
 assign drop_pos = 176;
+assign block1_pos = 620;
+assign block2_pos = 620;
+assign block3_pos = 620;
+assign block4_pos = 620;
+assign sm_block_pos = 220;
 
 // always @(*) begin
 //   case (speed_level[0])
@@ -563,6 +592,116 @@ assign drop_region =
           pixel_y >= (drop_vpos<<1) && pixel_y < (drop_vpos+DROP_H)<<1 &&
           (pixel_x + 111) >= drop_pos && pixel_x < drop_pos + 1;
 
+// assign block1_region =
+//           pixel_y >= (block1_vpos<<1) && pixel_y < (block1_vpos+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1;
+
+// assign block2_region =
+//           pixel_y >= (block2_vpos<<1) && pixel_y < (block2_vpos+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1;
+
+// assign block3_region =
+//           pixel_y >= (block3_vpos<<1) && pixel_y < (block3_vpos+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1;
+
+// assign block4_region =
+//           pixel_y >= (block4_vpos<<1) && pixel_y < (block4_vpos+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1;
+
+// assign sm_block_region =
+//           pixel_y >= (sm_block_vpos<<1) && pixel_y < (sm_block_vpos+SM_BLOCK_H)<<1 &&
+//           (pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1;
+
+assign block1_region =
+    (
+        (pixel_y == (block1_vpos << 1)) &&
+        ((pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block1_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block1_pos && pixel_x < block1_pos + 1)
+    ) ||
+    (
+        (pixel_x == block1_pos) &&
+        (pixel_y >= (block1_vpos << 1) && pixel_y < (block1_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block1_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block1_vpos << 1) && pixel_y < (block1_vpos + BLOCK_H) << 1)
+    );
+
+assign block2_region =
+    (
+        (pixel_y == (block2_vpos << 1)) &&
+        ((pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block2_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block2_pos && pixel_x < block2_pos + 1)
+    ) ||
+    (
+        (pixel_x == block2_pos) &&
+        (pixel_y >= (block2_vpos << 1) && pixel_y < (block2_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block2_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block2_vpos << 1) && pixel_y < (block2_vpos + BLOCK_H) << 1)
+    );
+
+assign block3_region =
+    (
+        (pixel_y == (block3_vpos << 1)) &&
+        ((pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block3_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block3_pos && pixel_x < block3_pos + 1)
+    ) ||
+    (
+        (pixel_x == block3_pos) &&
+        (pixel_y >= (block3_vpos << 1) && pixel_y < (block3_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block3_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block3_vpos << 1) && pixel_y < (block3_vpos + BLOCK_H) << 1)
+    );
+
+assign block4_region =
+    (
+        (pixel_y == (block4_vpos << 1)) &&
+        ((pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((block4_vpos + BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 379) >= block4_pos && pixel_x < block4_pos + 1)
+    ) ||
+    (
+        (pixel_x == block4_pos) &&
+        (pixel_y >= (block4_vpos << 1) && pixel_y < (block4_vpos + BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == block4_pos - 2 * BLOCK_W + 1) &&
+        (pixel_y >= (block4_vpos << 1) && pixel_y < (block4_vpos + BLOCK_H) << 1)
+    );
+
+assign sm_block_region =
+    (
+        (pixel_y == (sm_block_vpos << 1)) &&
+        ((pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1)
+    ) ||
+    (
+        (pixel_y == ((sm_block_vpos + SM_BLOCK_H) << 1) - 1) &&
+        ((pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1)
+    ) ||
+    (
+        (pixel_x == sm_block_pos) &&
+        (pixel_y >= (sm_block_vpos << 1) && pixel_y < (sm_block_vpos + SM_BLOCK_H) << 1)
+    ) ||
+    (
+        (pixel_x == sm_block_pos - 2 * SM_BLOCK_W + 1) &&
+        (pixel_y >= (sm_block_vpos << 1) && pixel_y < (sm_block_vpos + SM_BLOCK_H) << 1)
+    );
+
 // always @ (posedge clk) begin
 // if (~reset_n) begin
 //     pixel_f1_addr <= 0;
@@ -645,6 +784,16 @@ always @(*) begin
     // if (vend_region)
     //   // rgb_next = data_vend_out;
     //   rgb_next = 12'hf00;
+    else if (block1_region)
+      rgb_next = 12'h555;
+    else if (block2_region)
+      rgb_next = 12'h555;
+    else if (block3_region)
+      rgb_next = 12'h555;
+    else if (block4_region)
+      rgb_next = 12'h555;
+    else if (sm_block_region)
+      rgb_next = 12'h555;
     else
       rgb_next = 12'hed5;
 end
