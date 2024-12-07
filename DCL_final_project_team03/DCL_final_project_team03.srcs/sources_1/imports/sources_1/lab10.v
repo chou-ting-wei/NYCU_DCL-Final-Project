@@ -431,7 +431,8 @@ assign {VGA_RED, VGA_GREEN, VGA_BLUE} = rgb_reg;
 
 assign vend_pos = 220;
 assign drop_pos = 176;
-assign water_pos = 176; // right bound
+
+assign water_pos = water_pos_reg;
 assign tea_pos = 164; // right bound
 assign juice_pos = 152; // right bound
 assign coke_pos = 144; // right bound
@@ -536,7 +537,7 @@ always @(posedge clk) begin
       water_drop_clock <= 0;
     end
     else begin
-      water_drop_clock <= water_drop_clock + 4;
+      water_drop_clock <= water_drop_clock + 8;
     end
   end
   else begin
@@ -576,6 +577,25 @@ always @(posedge clk) begin
       else begin
         water_vpos <= 10'd118;
       end
+  end
+end
+// water random x control
+reg [7:0] lfsr;
+always @(posedge clk or negedge reset_n) begin
+  if (~reset_n)
+    lfsr <= 8'hA5;
+  else
+    lfsr <= {lfsr[6:0], lfsr[7] ^ lfsr[5]};
+end
+
+wire [5:0] rand_val = lfsr[5:0];
+wire [5:0] offset = rand_val % 51;
+reg [9:0] water_pos_reg;
+always @(posedge clk or negedge reset_n) begin
+  if (~reset_n) begin
+    water_pos_reg <= 176;
+  end else if (water_vpos > 160) begin
+    water_pos_reg <= 126 + offset;
   end
 end
 // always @(posedge clk) begin
@@ -774,10 +794,8 @@ always @(*) begin
   if (~video_on)
     rgb_next = 12'h000; // Synchronization period, must set RGB values to zero.
   else
-    if (fall_water_region && data_water_out != 12'h0f0)
+    if (drop_region && fall_water_region && data_water_out != 12'h0f0)
       rgb_next = data_water_out;
-    else if (drop_region)
-      rgb_next = 12'hf00;
     else if (vend_region && data_vend_out != 12'h0f0)
       rgb_next = data_vend_out;
       // rgb_next = 12'hf00;
