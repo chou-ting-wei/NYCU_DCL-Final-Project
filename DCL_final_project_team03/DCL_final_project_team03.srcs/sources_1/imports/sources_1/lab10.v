@@ -36,16 +36,6 @@ module lab10(
 );
 
 // Declare system variables
-// reg  [35:0] fish1_clock;
-// reg  [35:0] fish2_clock;
-// reg  [35:0] fish3_clock;
-// wire [9:0]  fish1_pos;
-// wire [9:0]  fish2_pos;
-// wire [9:0]  fish3_pos;
-// wire        fish1_region;
-// wire        fish2_region;
-// wire        fish3_region;
-
 wire [9:0]  vend_pos;
 wire        vend_region;
 
@@ -76,13 +66,26 @@ wire        block3_region;
 wire [9:0]  block4_pos;
 wire        block4_region;
 
+// wire [9:0]  select_top_pos;
+// wire        select_top_region;
+
+// wire [9:0]  select_pos1;
+// wire        select_region1;
+
+// wire [9:0]  select_pos2;
+// wire        select_region2;
+
+// wire [9:0]  money_top_pos;
+// wire        money_top_region;
+
+// wire [9:0]  money_pos1;
+// wire        money_region1;
+
+// wire [9:0]  money_pos2;
+// wire        money_region2;
+
 wire [9:0]  sm_block_pos;
 wire        sm_block_region;
-
-// declare SRAM control signals
-wire [20:0] sram_f1_addr;
-wire [11:0] data_f1_in;
-wire [11:0] data_f1_out;
 
 wire [9:0]  num1_1_pos;
 wire        num1_1_region;
@@ -168,6 +171,11 @@ wire        num4_4_region;
 // wire [11:0] data_bg_in;
 // wire [11:0] data_bg_out;
 
+// declare SRAM control signals
+// wire [20:0] sram_f1_addr;
+// wire [11:0] data_f1_in;
+// wire [11:0] data_f1_out;
+
 wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
 wire [11:0] data_vend_out;
@@ -191,6 +199,22 @@ wire [11:0] data_coke_out2;
 wire [20:0] sram_num_addr;
 wire [11:0] data_num_in;
 wire [11:0] data_num_out;
+
+// wire [20:0] sram_money_top_addr;
+// wire [11:0] data_money_top_in;
+// wire [11:0] data_money_top_out;
+
+// wire [20:0] sram_money_addr;
+// wire [11:0] data_money_in;
+// wire [11:0] data_money_out;
+
+// wire [20:0] sram_select_top_addr;
+// wire [11:0] data_select_top_in;
+// wire [11:0] data_select_top_out;
+
+// wire [20:0] sram_select_addr;
+// wire [11:0] data_select_in;
+// wire [11:0] data_select_out;
 
 wire sram_we, sram_en;
 
@@ -246,6 +270,11 @@ reg  [20:0] pixel_num4_2_addr;
 reg  [20:0] pixel_num4_3_addr;
 reg  [20:0] pixel_num4_4_addr;
 
+// reg  [20:0] pixel_select_top_addr;
+// reg  [20:0] pixel_select_addr;
+// reg  [20:0] pixel_money_top_addr;
+// reg  [20:0] pixel_money_addr;
+
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
 localparam VBUF_H = 240; // video buffer height
@@ -281,6 +310,25 @@ localparam block3_vpos  = 124;
 localparam block4_vpos  = 181;
 localparam BLOCK_W      = 190;
 localparam BLOCK_H      = 50;
+
+// localparam select_top_vpos  = 10;
+// localparam select_vpos1  = 20;
+// localparam select_vpos2  = 191;
+// localparam money_top_vpos  = 67;
+// localparam money_vpos1  = 77;
+// localparam money_vpos2  = 134;
+
+// reg [20:0] select_top_addr;
+// reg [20:0] select_addr;
+// reg [20:0] money_top_addr;
+// reg [20:0] money_addr;
+
+// initial begin
+//   select_top_addr = 0;
+//   select_addr = 10*BLOCK_W;
+//   money_top_addr = 0;
+//   money_addr = 10*BLOCK_W;
+// end
 
 localparam sm_block_vpos  = 190;
 localparam SM_BLOCK_W      = 100;
@@ -450,10 +498,15 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H), .FILE("images
           .addr_1(sram_vend_addr), .data_i_1(data_vend_in), .data_o_1(data_vend_out),
           .addr_2(sram_num_addr), .data_i_2(data_num_in), .data_o_2(data_num_out));
 
-// sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(FISH2_W*FISH2_H*4+FISH3_W*FISH3_H*4), .FILE("images2.mem"))
-//   ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
-//           .addr_1(sram_f2_addr), .data_i_1(data_f2_in), .data_o_1(data_f2_out),
-//           .addr_2(sram_f3_addr), .data_i_2(data_f3_in), .data_o_2(data_f3_out));
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(BLOCK_W*BLOCK_H), .FILE("images2.mem"))
+  ram_2 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(select_top_addr), .data_i_1(data_select_top_in), .data_o_1(data_select_top_out),
+          .addr_2(select_addr), .data_i_2(data_select_in), .data_o_2(data_select_out));
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(BLOCK_W*BLOCK_H), .FILE("images3.mem"))
+  ram_3 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(money_top_addr), .data_i_1(data_money_top_in), .data_o_1(data_money_top_out),
+          .addr_2(money_addr), .data_i_2(data_money_in), .data_o_2(data_money_out));
 
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W2*WATER_H2+JUICE_W2*JUICE_H2), .FILE("images4.mem"))
   ram_4 (.clk(clk), .we(sram_we), .en(sram_en),
@@ -495,6 +548,15 @@ assign data_tea_in2 = 12'h000;
 assign sram_coke_addr2 = pixel_coke_addr2;
 assign data_coke_in2 = 12'h000;
 
+// assign sram_select_top_addr = pixel_select_top_addr;
+// assign data_select_top_in = 12'h000;
+// assign sram_select_addr = pixel_select_addr;
+// assign data_select_in = 12'h000;
+// assign sram_money_top_addr = pixel_money_top_addr;
+// assign data_money_top_in = 12'h000;
+// assign sram_money_addr = pixel_money_addr;
+// assign data_money_in = 12'h000;
+
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -521,6 +583,13 @@ assign block3_pos = 620;
 assign block4_pos = 620;
 assign sm_block_pos = 220;
 
+// assign select_top_pos = 620;
+// assign select_pos1 = 620;
+// assign select_pos2 = 620;
+// assign money_top_pos = 620;
+// assign money_pos1 = 620;
+// assign money_pos2 = 620;
+
 assign num1_1_pos = 230+44;
 assign num1_2_pos = 230+84;
 assign num1_3_pos = 230+124;
@@ -545,6 +614,9 @@ assign num4_1_pos = 230+64;
 assign num4_2_pos = 230+144;
 assign num4_3_pos = 230+224;
 assign num4_4_pos = 230+304;
+
+//left-top
+// 15x30 30x30 45x30 75x30
 
 // End of the animation clock code.
 // ------------------------------------------------------------------------
@@ -674,6 +746,30 @@ assign num4_3_region =
 assign num4_4_region =
           pixel_y >= (num4_4_vpos<<1) && pixel_y < (num4_4_vpos+NUM_H)<<1 &&
           (pixel_x + 13) >= num4_4_pos && pixel_x < num4_4_pos + 1;
+
+// assign select_top_region =
+//           pixel_y >= (select_top_vpos<<1) && pixel_y < (select_top_vpos+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= select_top_pos && pixel_x < select_top_pos + 1;
+
+// assign select_region1 =
+//           pixel_y >= (select_vpos1<<1) && pixel_y < (select_vpos1+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= select_pos1 && pixel_x < select_pos1 + 1;
+
+// assign select_region2 =
+//           pixel_y >= (select_vpos2<<1) && pixel_y < (select_vpos2+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= select_pos2 && pixel_x < select_pos2 + 1;
+
+// assign money_top_region =
+//           pixel_y >= (money_top_vpos<<1) && pixel_y < (money_top_vpos+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= money_top_pos && pixel_x < money_top_pos + 1;
+
+// assign money_region1 =
+//           pixel_y >= (money_vpos1<<1) && pixel_y < (money_vpos1+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= money_pos1 && pixel_x < money_pos1 + 1;
+
+// assign money_region2 =
+//           pixel_y >= (money_vpos2<<1) && pixel_y < (money_vpos2+BLOCK_H)<<1 &&
+//           (pixel_x + 379) >= money_pos2 && pixel_x < money_pos2 + 1;
 
 assign block1_region =
     (
@@ -810,6 +906,34 @@ always @ (posedge clk) begin
       pixel_coke_addr2 <= coke_addr2+((pixel_y>>1)-coke_vpos2)*COKE_W2 +
                     ((pixel_x +(COKE_W2*2-1)-coke_pos2)>>1);
     end
+
+    // if (select_top_region) begin
+    //   pixel_select_top_addr <= select_top_addr + ((pixel_y >> 1) - select_top_vpos) * BLOCK_W +
+    //                         ((pixel_x + (BLOCK_W * 2 - 1) - select_top_pos) >> 1);
+    // end
+    // if (select_region1) begin
+    //   pixel_select_addr <= select_addr + ((pixel_y >> 1) - select_vpos1) * BLOCK_W +
+    //                         ((pixel_x + (BLOCK_W * 2 - 1) - select_pos1) >> 1);
+    // end
+    // if (select_region2) begin
+    //   pixel_select_addr <= select_addr + 
+    //                         ((pixel_y >> 1) - select_vpos2) * BLOCK_W +
+    //                         ((pixel_x + (BLOCK_W * 2 - 1) - select_pos2) >> 1);
+    // end
+
+    // if (money_top_region) begin
+    //   pixel_money_top_addr <= money_top_addr+((pixel_y >> 1) - money_top_vpos) * BLOCK_W +
+    //                         ((pixel_x + (BLOCK_W * 2 - 1) - money_top_pos) >> 1);
+    // end
+    // if (money_region1) begin
+    //   pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos1) * BLOCK_W +
+    //                         ((pixel_x + (BLOCK_W * 2 - 1) - money_pos1) >> 1);
+    // end
+    // if (money_region2) begin
+    //   pixel_money_addr <= money_addr + ((pixel_y >> 1) - money_vpos2) * BLOCK_W +
+    //                         ((pixel_x + (BLOCK_W * 2 - 1) - money_pos2) >> 1);
+    // end
+
     if (num1_1_region) begin
       pixel_num1_1_addr <= select_base_addr(used_water_num) + 
                             ((pixel_y >> 1) - num1_1_vpos) * NUM_W +
@@ -944,6 +1068,20 @@ always @(*) begin
       rgb_next = 12'h555;
     else if (block4_region)
       rgb_next = 12'h555;
+
+    // else if (select_top_region)
+    //   rgb_next = 12'h0f0;
+    // else if (select_region1)
+    //   rgb_next = 12'h00f;
+    // else if (select_region2)
+    //   rgb_next = 12'h00f;
+    // else if (money_top_region)
+    //   rgb_next = 12'h0f0;
+    // else if (money_region1)
+    //   rgb_next = 12'h00f;
+    // else if (money_region2)
+    //   rgb_next = 12'h00f;
+
     else if (sm_block_region)
       rgb_next = 12'h555;
     else
