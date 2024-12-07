@@ -1,5 +1,7 @@
 *.log
 *.jou
 *.str
-.Xil
 *.cache
+
+.Xil
+.DS_Store
