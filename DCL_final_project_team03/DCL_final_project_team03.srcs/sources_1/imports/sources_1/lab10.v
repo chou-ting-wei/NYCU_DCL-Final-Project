@@ -38,6 +38,8 @@ module lab10(
 // Declare system variables
 reg  [31:0] water_drop_clock;
 reg  [31:0] tea_drop_clock;
+reg  [31:0] juice_drop_clock;
+reg  [31:0] coke_drop_clock;
 // reg  [35:0] fish2_clock;
 // reg  [35:0] fish3_clock;
 // wire [9:0]  fish1_pos;
@@ -598,14 +600,16 @@ always @(posedge clk or negedge reset_n) begin
     water_pos_reg <= 126 + offset;
   end
 end
-//-------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
 // tea drop clock control
 reg tea_drop_speed;
 always @(posedge clk) begin
   if(~reset_n) begin
     tea_drop_clock <= 0;
   end
-  else if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0) begin
+  else if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0 && remain_juice_num == 0) begin
     if(tea_drop_speed == 1 || tea_vpos > 160) begin
       tea_drop_clock <= 0;
     end
@@ -625,7 +629,7 @@ always @(posedge clk) begin
   if(~reset_n) begin
     tea_drop_speed <= 0;
   end
-  else if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0) begin
+  else if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0 && remain_juice_num == 0) begin
     if(tea_drop_speed == 1) begin
       tea_drop_speed <= 0;
     end
@@ -640,18 +644,18 @@ end
 // water drop vpos control
 always @(posedge clk) begin
     if (~reset_n) begin
-      tea_vpos <= 10'd118;
+      tea_vpos <= 10'd127;
     end else begin
-      if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0) begin
+      if (P == S_MAIN_DROP && remain_tea_num > 0 && remain_water_num == 0 && remain_juice_num == 0) begin
         if(tea_vpos > 160) begin
-          tea_vpos <= 10'd118;
+          tea_vpos <= 10'd127;
         end
         else begin
           tea_vpos <= tea_vpos + tea_drop_speed;
         end
       end
       else begin
-        tea_vpos <= 10'd118;
+        tea_vpos <= 10'd127;
       end
   end
 end
@@ -662,6 +666,142 @@ always @(posedge clk or negedge reset_n) begin
     tea_pos_reg <= 176;
   end else if (tea_vpos > 160) begin
     tea_pos_reg <= 126 + offset;
+  end
+end
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+// juice drop clock control
+reg juice_drop_speed;
+always @(posedge clk) begin
+  if(~reset_n) begin
+    juice_drop_clock <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_juice_num > 0 && remain_water_num == 0) begin
+    if(juice_drop_speed == 1 || juice_vpos > 160) begin
+      juice_drop_clock <= 0;
+    end
+    else if(juice_vpos > 160) begin
+      juice_drop_clock <= 0;
+    end
+    else begin
+      juice_drop_clock <= juice_drop_clock + 8;
+    end
+  end
+  else begin
+    juice_drop_clock <= 0;
+  end
+end
+// juice drop speed control
+always @(posedge clk) begin
+  if(~reset_n) begin
+    juice_drop_speed <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_juice_num > 0 && remain_water_num == 0) begin
+    if(juice_drop_speed == 1) begin
+      juice_drop_speed <= 0;
+    end
+    else if(juice_drop_clock[26:25] == 1) begin
+      juice_drop_speed <= 1;
+    end
+  end
+  else begin
+    juice_drop_speed <= 0;
+  end
+end
+// juice drop vpos control
+always @(posedge clk) begin
+    if (~reset_n) begin
+      juice_vpos <= 10'd118;
+    end else begin
+      if (P == S_MAIN_DROP && remain_juice_num > 0 && remain_water_num == 0) begin
+        if(juice_vpos > 160) begin
+          juice_vpos <= 10'd118;
+        end
+        else begin
+          juice_vpos <= juice_vpos + juice_drop_speed;
+        end
+      end
+      else begin
+        juice_vpos <= 10'd118;
+      end
+  end
+end
+// juice random x control
+reg [9:0] juice_pos_reg;
+always @(posedge clk or negedge reset_n) begin
+  if (~reset_n) begin
+    juice_pos_reg <= 176;
+  end else if (tea_vpos > 160) begin
+    juice_pos_reg <= 126 + offset;
+  end
+end
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+// coke drop clock control
+reg coke_drop_speed;
+always @(posedge clk) begin
+  if(~reset_n) begin
+    coke_drop_clock <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_coke_num > 0 && remain_water_num == 0 && remain_tea_num == 0 && remain_juice_num == 0) begin
+    if(coke_drop_speed == 1 || coke_vpos > 160) begin
+      coke_drop_clock <= 0;
+    end
+    else if(coke_vpos > 160) begin
+      coke_drop_clock <= 0;
+    end
+    else begin
+      coke_drop_clock <= coke_drop_clock + 8;
+    end
+  end
+  else begin
+    coke_drop_clock <= 0;
+  end
+end
+// coke drop speed control
+always @(posedge clk) begin
+  if(~reset_n) begin
+    coke_drop_speed <= 0;
+  end
+  else if (P == S_MAIN_DROP && remain_coke_num > 0 && remain_water_num == 0 && remain_tea_num == 0 && remain_juice_num == 0) begin
+    if(coke_drop_speed == 1) begin
+      coke_drop_speed <= 0;
+    end
+    else if(coke_drop_clock[26:25] == 1) begin
+      coke_drop_speed <= 1;
+    end
+  end
+  else begin
+    coke_drop_speed <= 0;
+  end
+end
+// coke drop vpos control
+always @(posedge clk) begin
+    if (~reset_n) begin
+      coke_vpos <= 10'd121;
+    end else begin
+      if (P == S_MAIN_DROP && remain_coke_num > 0 && remain_water_num == 0 && remain_tea_num == 0 && remain_juice_num == 0) begin
+        if(coke_vpos > 160) begin
+          coke_vpos <= 10'd121;
+        end
+        else begin
+          coke_vpos <= coke_vpos + coke_drop_speed;
+        end
+      end
+      else begin
+        coke_vpos <= 10'd121;
+      end
+  end
+end
+// juice random x control
+reg [9:0] coke_pos_reg;
+always @(posedge clk or negedge reset_n) begin
+  if (~reset_n) begin
+    coke_pos_reg <= 176;
+  end else if (coke_vpos > 160) begin
+    coke_pos_reg <= 126 + offset;
   end
 end
 // always @(posedge clk) begin
@@ -743,21 +883,6 @@ end
 // Note that the width x height of the fish image is 64x32, when scaled-up
 // on the screen, it becomes 128x64. 'pos' specifies the right edge of the
 // fish image.
-// assign fish_region =
-//            pixel_y >= (FISH_VPOS<<1) && pixel_y < (FISH_VPOS+FISH_H)<<1 &&
-//            (pixel_x + 127) >= pos && pixel_x < pos + 1;
-// assign fish1_region =
-//           pixel_y >= (fish1_vpos<<1) && pixel_y < (fish1_vpos+FISH1_H)<<1 &&
-//           (pixel_x + 127) >= fish1_pos && pixel_x < fish1_pos + 1;
-
-// assign fish2_region =
-//           pixel_y >= (fish2_vpos<<1) && pixel_y < (fish2_vpos+FISH2_H)<<1 &&
-//           (pixel_x + 127) >= fish2_pos && pixel_x < fish2_pos + 1;
-
-// assign fish3_region =
-//           pixel_y >= (fish3_vpos<<1) && pixel_y < (fish3_vpos+FISH3_H)<<1 &&
-//           (pixel_x + 127) >= fish3_pos && pixel_x < fish3_pos + 1;
-
 assign vend_region =
           pixel_y >= (vend_vpos<<1) && pixel_y < (vend_vpos+VEND_H)<<1 &&
           (pixel_x + 199) >= vend_pos && pixel_x < vend_pos + 1;
@@ -785,52 +910,6 @@ assign fall_coke_region =
           pixel_y >= (coke_vpos<<1) && 
           pixel_y < ((coke_vpos + COKE_H)<<1) &&
           (pixel_x + 23) >= coke_pos && pixel_x < (coke_pos + 1);
-// always @ (posedge clk) begin
-// if (~reset_n) begin
-//     pixel_f1_addr <= 0;
-//     pixel_f2_addr <= 0;
-//     pixel_f3_addr <= 0;
-//   end
-//   else begin
-//     if (fish1_region) begin
-//       if (fish1_dir)
-//         pixel_f1_addr <= fish1_addr[fish1_clock[25:23]] +
-//                       ((pixel_y>>1)-fish1_vpos)*FISH1_W +
-//                       ((pixel_x +(FISH1_W*2-1)-fish1_pos)>>1);
-//       else
-//         pixel_f1_addr <= fish1_addr[fish1_clock[25:23]] +
-//                       ((pixel_y >> 1) - fish1_vpos) * FISH1_W +
-//                       (FISH1_W - ((pixel_x +(FISH1_W*2-1)-fish1_pos)>>1) - 1);
-//     end
-//     if (fish2_region) begin
-//       if (fish2_dir)
-//         pixel_f2_addr <= fish2_addr[fish2_clock[25:24]] +
-//                       ((pixel_y>>1)-fish2_vpos)*FISH2_W +
-//                       ((pixel_x +(FISH2_W*2-1)-fish2_pos)>>1);
-//       else
-//         pixel_f2_addr <= fish2_addr[fish2_clock[25:24]] +
-//                       ((pixel_y >> 1) - fish2_vpos) * FISH2_W +
-//                       (FISH2_W - ((pixel_x +(FISH2_W*2-1)-fish2_pos)>>1) - 1);
-//     end
-//     if (fish3_region) begin
-//       if (~fish3_dir)
-//         pixel_f3_addr <= fish3_addr[fish3_clock[25:24]] +
-//                       ((pixel_y>>1)-fish3_vpos)*FISH3_W +
-//                       ((pixel_x +(FISH3_W*2-1)-fish3_pos)>>1);
-//       else
-//         pixel_f3_addr <= fish3_addr[fish3_clock[25:24]] +
-//                       ((pixel_y >> 1) - fish3_vpos) * FISH3_W +
-//                       (FISH3_W - ((pixel_x +(FISH3_W*2-1)-fish3_pos)>>1) - 1);
-//     end
-//   end
-// end
-
-// always @ (posedge clk) begin
-//   if (~reset_n)
-//     pixel_bg_addr <= 0;
-//   else
-//     pixel_bg_addr <= (pixel_y >> 1) * VBUF_W + (pixel_x >> 1);
-// end
 
 always @ (posedge clk) begin
   if (~reset_n)
@@ -870,14 +949,6 @@ always @(*) begin
       rgb_next = data_tea_out;
     else if (vend_region && data_vend_out != 12'h0f0)
       rgb_next = data_vend_out;
-      // rgb_next = 12'hf00;
-    // else if (fish2_region && data_f2_out != 12'h0f0)
-    //   rgb_next = data_f2_out;
-    // else if (fish3_region && data_f3_out != 12'h0f0)
-    //   rgb_next = data_f3_out;
-    // if (vend_region)
-    //   // rgb_next = data_vend_out;
-    //   rgb_next = 12'hf00;
     else
       rgb_next = 12'hed5;
 end
@@ -921,7 +992,7 @@ always @(*) begin // FSM next-state logic
         P_next = (btn_pressed[3]) ? S_MAIN_PAY : S_MAIN_BUY;
       S_MAIN_PAY:
         // P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
-        P_next = (btn_pressed[3]) ? S_MAIN_DROP : S_MAIN_PAY;
+        P_next = (btn_pressed[3]) ? S_MAIN_CALC : S_MAIN_PAY;
       S_MAIN_CALC: begin
         if (calc_done) begin
           if (refund_valid == 2'b10) begin
@@ -962,7 +1033,7 @@ end
 localparam WATER_VALUE = 3,
            TEA_VALUE = 5,
            JUICE_VALUE = 10,
-           coke_VALUE = 20;
+           COKE_VALUE = 20;
 
 // S_MAIN_BUY
 reg [8:0] total_amount; // item value
@@ -970,9 +1041,9 @@ reg [3:0] water_num, tea_num, juice_num, coke_num; // we have how many coin
 reg [3:0] used_water_num, used_tea_num, used_juice_num, used_coke_num; // we have used how many coin
 reg [1:0] item_pointer;
 localparam [1:0] CHOOSE_WATER = 2'd0,
-                 CHOOSE_TEA = 2'd1,
-                 CHOOSE_JUICE = 2'd2,
-                 CHOOSE_coke = 2'd3;
+                 CHOOSE_JUICE = 2'd1,
+                 CHOOSE_TEA   = 2'd2,
+                 CHOOSE_coke  = 2'd3;
 
 // choose what item
 always @(posedge clk) begin
@@ -1049,7 +1120,7 @@ always @(posedge clk) begin
     end
     else if (btn_pressed[3]) begin
       total_amount <= used_water_num * WATER_VALUE + used_tea_num * TEA_VALUE+
-                      used_juice_num * JUICE_VALUE + used_coke_num * coke_VALUE;
+                      used_juice_num * JUICE_VALUE + used_coke_num * COKE_VALUE;
     end
   end
 end
@@ -1255,7 +1326,7 @@ always @(posedge clk) begin
     remain_coke_num <= 0;
   end
   // set remain constant
-  else if (P == S_MAIN_PAY && P_next == S_MAIN_DROP) begin
+  else if (P == S_MAIN_CALC && P_next == S_MAIN_DROP) begin
     remain_water_num <= used_water_num;
     remain_tea_num <= used_tea_num;
     remain_juice_num <= used_juice_num;
@@ -1263,7 +1334,7 @@ always @(posedge clk) begin
   end
   // remain constant minus
   else if (P == S_MAIN_DROP) begin
-    if(water_vpos > 160 || tea_vpos > 160) begin
+    if(water_vpos > 160 || tea_vpos > 160 || juice_vpos > 160 || coke_vpos > 160) begin
       case(what_item_fall)
       FALL_WATER: begin
         remain_water_num = remain_water_num - 1;
