@@ -174,22 +174,29 @@ wire        num4_3_region;
 wire [9:0]  num4_4_pos;
 wire        num4_4_region;
 
-// wire [20:0] sram_f2_addr;
-// wire [11:0] data_f2_in;
-// wire [11:0] data_f2_out;
+wire [9:0]  slash1_1_pos;
+wire        slash1_1_region;
 
-// wire [20:0] sram_f3_addr;
-// wire [11:0] data_f3_in;
-// wire [11:0] data_f3_out;
+wire [9:0]  slash1_2_pos;
+wire        slash1_2_region;
 
-// wire [20:0] sram_bg_addr;
-// wire [11:0] data_bg_in;
-// wire [11:0] data_bg_out;
+wire [9:0]  slash1_3_pos;
+wire        slash1_3_region;
 
-// declare SRAM control signals
-// wire [20:0] sram_f1_addr;
-// wire [11:0] data_f1_in;
-// wire [11:0] data_f1_out;
+wire [9:0]  slash1_4_pos;
+wire        slash1_4_region;
+
+wire [9:0]  slash2_1_pos;
+wire        slash2_1_region;
+
+wire [9:0]  slash2_2_pos;
+wire        slash2_2_region;
+
+wire [9:0]  slash2_3_pos;
+wire        slash2_3_region;
+
+wire [9:0]  slash2_4_pos;
+wire        slash2_4_region;
 
 wire [20:0] sram_vend_addr;
 wire [11:0] data_vend_in;
@@ -235,6 +242,10 @@ wire [20:0] sram_rest_addr;
 wire [11:0] data_rest_in;
 wire [11:0] data_rest_out;
 
+wire [20:0] sram_slash_addr;
+wire [11:0] data_slash_in;
+wire [11:0] data_slash_out;
+
 wire sram_we, sram_en;
 
 // General VGA control signals
@@ -259,8 +270,8 @@ reg  [20:0] pixel_tea_addr2;
 reg  [20:0] pixel_coke_addr2;
 reg  [20:0] pixel_drop_addr;
 
-
 reg  [20:0] pixel_num_addr;
+reg  [20:0] pixel_slash_addr;
 
 reg  [20:0] pixel_select_top_addr;
 reg  [20:0] pixel_select_addr;
@@ -346,6 +357,15 @@ localparam num4_4_vpos  = 221;
 localparam NUM_W      = 7;
 localparam NUM_H      = 9;
 
+localparam slash1_1_vpos  = 50;
+localparam slash1_2_vpos  = 50;
+localparam slash1_3_vpos  = 50;
+localparam slash1_4_vpos  = 50;
+localparam slash2_1_vpos  = 107;
+localparam slash2_2_vpos  = 107;
+localparam slash2_3_vpos  = 107;
+localparam slash2_4_vpos  = 107;
+
 reg [20:0] zero_addr;
 reg [20:0] one_addr;
 reg [20:0] two_addr;
@@ -356,6 +376,7 @@ reg [20:0] six_addr;
 reg [20:0] seven_addr;
 reg [20:0] eight_addr;
 reg [20:0] nine_addr;
+reg [20:0] slash_addr;
 initial begin
   zero_addr = VEND_W*VEND_H;
   one_addr = VEND_W*VEND_H+NUM_W * NUM_H;
@@ -367,6 +388,7 @@ initial begin
   seven_addr = VEND_W*VEND_H+NUM_W * NUM_H * 7;
   eight_addr = VEND_W*VEND_H+NUM_W * NUM_H * 8;
   nine_addr = VEND_W*VEND_H+NUM_W * NUM_H * 9;
+  slash_addr = SM_BLOCK_H*SM_BLOCK_W;
 end
 
 wire [3:0]  btn_level, btn_pressed;
@@ -445,9 +467,9 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
 
-wire [20:0] sram_tmp_addr;
-wire [11:0] data_tmp_in;
-wire [11:0] data_tmp_out;
+// wire [20:0] sram_tmp_addr;
+// wire [11:0] data_tmp_in;
+// wire [11:0] data_tmp_out;
 
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H+NUM_W * NUM_H * 10), .FILE("images.mem"))
   ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
@@ -475,10 +497,10 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(TEA_W2*TEA_H2+COKE_W2*COKE_H2
           .addr_1(sram_tea_addr2), .data_i_1(data_tea_in2), .data_o_1(data_tea_out2),
           .addr_2(sram_coke_addr2), .data_i_2(data_coke_in2), .data_o_2(data_coke_out2));
 
-sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(SM_BLOCK_H*SM_BLOCK_W), .FILE("images6.mem"))
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(SM_BLOCK_H*SM_BLOCK_W+NUM_H*NUM_W), .FILE("images6.mem"))
   ram_6 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_rest_addr), .data_i_1(data_rest_in), .data_o_1(data_rest_out),
-          .addr_2(sram_tmp_addr), .data_i_2(data_tmp_in), .data_o_2(data_tmp_out)); // unused
+          .addr_2(sram_slash_addr), .data_i_2(data_slash_in), .data_o_2(data_slash_out));
 
 
 assign sram_we = usr_sw[3]; // In this demo, we do not write the SRAM. However, if
@@ -523,6 +545,9 @@ assign data_num_in = 12'h000;
 
 assign sram_rest_addr = pixel_rest_addr;
 assign data_rest_in = 12'h000;
+
+assign sram_slash_addr = pixel_slash_addr;
+assign data_slash_in = 12'h000;
 
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
@@ -589,6 +614,16 @@ assign num0_1_pos = 20+40;
 assign num0_2_pos = 20+70;
 assign num0_3_pos = 20+110;
 assign num0_4_pos = 20+170;
+
+assign slash1_1_pos = 235+64;
+assign slash1_2_pos = 235+144;
+assign slash1_3_pos = 235+224;
+assign slash1_4_pos = 235+304;
+
+assign slash2_1_pos = 235+64;
+assign slash2_2_pos = 235+144;
+assign slash2_3_pos = 235+224;
+assign slash2_4_pos = 235+304;
 
 // End of the animation clock code.
 // ------------------------------------------------------------------------
@@ -738,6 +773,38 @@ assign num4_3_region =
 assign num4_4_region =
           pixel_y >= (num4_4_vpos<<1) && pixel_y < (num4_4_vpos+NUM_H)<<1 &&
           (pixel_x + 13) >= num4_4_pos && pixel_x < num4_4_pos + 1;
+
+assign slash1_1_region =
+          pixel_y >= (slash1_1_vpos<<1) && pixel_y < (slash1_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_1_pos && pixel_x < slash1_1_pos + 1;
+
+assign slash1_2_region =
+          pixel_y >= (slash1_2_vpos<<1) && pixel_y < (slash1_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_2_pos && pixel_x < slash1_2_pos + 1;
+
+assign slash1_3_region =
+          pixel_y >= (slash1_3_vpos<<1) && pixel_y < (slash1_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_3_pos && pixel_x < slash1_3_pos + 1;
+
+assign slash1_4_region =
+          pixel_y >= (slash1_4_vpos<<1) && pixel_y < (slash1_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash1_4_pos && pixel_x < slash1_4_pos + 1;
+
+assign slash2_1_region =
+          pixel_y >= (slash2_1_vpos<<1) && pixel_y < (slash2_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_1_pos && pixel_x < slash2_1_pos + 1;
+
+assign slash2_2_region =
+          pixel_y >= (slash2_2_vpos<<1) && pixel_y < (slash2_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_2_pos && pixel_x < slash2_2_pos + 1;
+
+assign slash2_3_region =
+          pixel_y >= (slash2_3_vpos<<1) && pixel_y < (slash2_3_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_3_pos && pixel_x < slash2_3_pos + 1;
+
+assign slash2_4_region =
+          pixel_y >= (slash2_4_vpos<<1) && pixel_y < (slash2_4_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= slash2_4_pos && pixel_x < slash2_4_pos + 1;
 
 assign select_top_region =
           pixel_y >= (select_top_vpos<<1) && pixel_y < (select_top_vpos+10)<<1 &&
@@ -1075,6 +1142,38 @@ always @ (posedge clk) begin
     //                         ((pixel_y >> 1) - num4_4_vpos) * NUM_W +
     //                         ((pixel_x + (NUM_W * 2 - 1) - num4_4_pos) >> 1);
     // end
+    if (slash1_1_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_1_pos) >> 1);
+    end
+    if (slash1_2_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_2_pos) >> 1);
+    end
+    if (slash1_3_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_3_pos) >> 1);
+    end
+    if (slash1_4_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash1_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash1_4_pos) >> 1);
+    end
+    if (slash2_1_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_1_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_1_pos) >> 1);
+    end
+    if (slash2_2_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_2_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_2_pos) >> 1);
+    end
+    if (slash2_3_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_3_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_3_pos) >> 1);
+    end
+    if (slash2_4_region) begin
+      pixel_slash_addr <= slash_addr + ((pixel_y >> 1) - slash2_4_vpos) * NUM_W +
+                            ((pixel_x + (NUM_W * 2 - 1) - slash2_4_pos) >> 1);
+    end
   end
 end
 
@@ -1168,6 +1267,23 @@ always @(*) begin
       rgb_next = data_num_out;
     else if (num4_4_region && data_num_out != 12'h0f0)
       rgb_next = data_num_out;
+    
+    else if (slash1_1_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash1_2_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash1_3_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash1_4_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_1_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_2_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_3_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
+    else if (slash2_4_region && data_slash_out != 12'h0f0)
+      rgb_next = data_slash_out;
 
     else if (block1_region)
       rgb_next = 12'h555;
