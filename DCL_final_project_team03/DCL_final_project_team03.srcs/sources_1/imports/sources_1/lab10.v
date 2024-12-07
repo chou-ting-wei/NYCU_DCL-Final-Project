@@ -34,6 +34,7 @@ module lab10(
   output [3:0] VGA_GREEN,
   output [3:0] VGA_BLUE
 );
+// FSM variable
 
 // Declare system variables
 reg  [35:0] fish1_clock;
@@ -85,6 +86,7 @@ reg  [20:0] pixel_f2_addr;
 reg  [20:0] pixel_f3_addr;
 reg  [20:0] pixel_bg_addr;
 
+//------------------------------picture-------------------------------------------
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
 localparam VBUF_H = 240; // video buffer height
@@ -104,10 +106,45 @@ reg [20:0] fish2_addr[0:3];
 localparam FISH3_W      = 64;
 localparam FISH3_H      = 72;
 reg [20:0] fish3_addr[0:3];
-
+//------------------------------picture end-------------------------------------------
+//---------------------------------debounce-------------------------------------------
 wire [3:0]  btn_level, btn_pressed;
 reg  [3:0]  prev_btn_level;
 
+debounce btn_db0(
+  .clk(clk),
+  .btn_input(usr_btn[0]),
+  .btn_output(btn_level[0])
+);
+
+debounce btn_db1(
+  .clk(clk),
+  .btn_input(usr_btn[1]),
+  .btn_output(btn_level[1])
+);
+
+debounce btn_db2(
+  .clk(clk),
+  .btn_input(usr_btn[2]),
+  .btn_output(btn_level[2])
+);
+
+debounce btn_db3(
+  .clk(clk),
+  .btn_input(usr_btn[3]),
+  .btn_output(btn_level[3])
+);
+
+always @(posedge clk) begin
+  if (~reset_n)
+    prev_btn_level <= 4'b0000;
+  else
+    prev_btn_level <= btn_level;
+end
+
+assign btn_pressed = (btn_level & ~prev_btn_level);
+//---------------------------------debounce end-------------------------------------------
+//---------------------------------debounce end-------------------------------------------
 reg [2:0] speed_level[0:2];
 
 reg [2:0] current_fish = 3'd0;  
@@ -152,38 +189,7 @@ clk_divider#(2) clk_divider0(
   .clk_out(vga_clk)
 );
 
-debounce btn_db0(
-  .clk(clk),
-  .btn_input(usr_btn[0]),
-  .btn_output(btn_level[0])
-);
 
-debounce btn_db1(
-  .clk(clk),
-  .btn_input(usr_btn[1]),
-  .btn_output(btn_level[1])
-);
-
-debounce btn_db2(
-  .clk(clk),
-  .btn_input(usr_btn[2]),
-  .btn_output(btn_level[2])
-);
-
-debounce btn_db3(
-  .clk(clk),
-  .btn_input(usr_btn[3]),
-  .btn_output(btn_level[3])
-);
-
-always @(posedge clk) begin
-  if (~reset_n)
-    prev_btn_level <= 4'b0000;
-  else
-    prev_btn_level <= btn_level;
-end
-
-assign btn_pressed = (btn_level & ~prev_btn_level);
 
 // reg fish1_speed_chg;
 // reg fish2_speed_chg;
@@ -608,6 +614,11 @@ reg [3:0] P, P_next;
 localparam INIT_DELAY = 100_000; // 1 msec @ 100 MHz
 reg [$clog2(INIT_DELAY):0] init_counter;
 
+// item value
+localparam WATER_VALUE = 3,
+           TEA_VALUE = 5,
+           JUICE_VALUE = 10,
+           COLA_VALUE = 20;
 // ------------------------------------------------------------------------
 // FSM of the main controller
 always @(posedge clk) begin
@@ -656,12 +667,178 @@ end
 
 // ------------------------------------------------------------------------
 // S_MAIN_BUY
+reg [8:0] total_amount; // item value
+reg [3:0] water_num, tea_num, juice_num, cola_num; // we have how many coin
+reg [3:0] used_water_num, used_tea_num, used_juice_num, used_cola_num; // we have used how many coin
+reg [1:0] item_pointer;
+localparam CHOOSE_WATER = 0,
+           CHOOSE_TEA = 1,
+           CHOOSE_JUICE = 2,
+           CHOOSE_COLA = 3;
 
+// choose what item
+always @(posedge clk) begin
+  if (~reset_n)begin
+    item_pointer = 0;
+  end
+  else if (P == S_MAIN_BUY) begin
+    if (btn_pressed[0]) begin
+      item_pointer <= item_pointer - 1;
+    end
+    else if (btn_pressed[1]) begin
+      item_pointer <= item_pointer + 1;
+    end
+  end
+end
+// add or minus item
+// calculate total amount
+always @(posedge clk) begin
+  if (~reset_n)begin
+    water_num <= 8;
+    tea_num <= 7;
+    juice_num <= 6;
+    cola_num <= 9;
+    used_water_num <= 0;
+    used_tea_num <= 0;
+    used_juice_num <= 0;
+    used_cola_num <= 0;
+    total_amount <= 0;
+  end
+  else if (P == S_MAIN_BUY) begin 
+    if (btn_pressed[2]) begin
+      if(usr_sw[0]) begin
+        // add item
+        case(item_pointer)
+          CHOOSE_WATER: begin
+            if(used_water_num < water_num)
+              used_water_num <= used_water_num + 1;
+          end
+          CHOOSE_TEA: begin
+            if(used_tea_num < tea_num)
+              used_tea_num <= used_tea_num + 1;
+          end
+          CHOOSE_JUICE: begin
+            if(used_juice_num < juice_num)
+              used_juice_num <= used_juice_num + 1;
+          end
+          CHOOSE_COLA: begin
+            if(used_cola_num < cola_num)
+              used_cola_num <= used_cola_num + 1;
+          end
+        endcase
+      end
+      else begin
+        // minus item
+        case(item_pointer)
+          CHOOSE_WATER: begin
+            if(used_water_num > 0)
+              used_water_num <= used_water_num - 1;
+          end
+          CHOOSE_TEA: begin
+            if(used_tea_num > 0)
+              used_tea_num <= used_tea_num - 1;
+          end
+          CHOOSE_JUICE: begin
+            if(used_juice_num > 0)
+              used_juice_num <= used_juice_num - 1;
+          end
+          CHOOSE_COLA: begin
+            if(used_cola_num > 0)
+              used_cola_num <= used_cola_num - 1;
+          end
+        endcase
+      end
+    end
+    else if (btn_pressed[3]) begin
+      total_amount <= used_water_num * WATER_VALUE + used_tea_num * TEA_VALUE+
+                      used_juice_num * JUICE_VALUE + used_cola_num * COLA_VALUE;
+    end
+  end
+end
 // ------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------
 // S_MAIN_PAY
+reg [3:0] coin_one, coin_five, coin_ten, coin_hundred; // we have how many coin
+reg [3:0] used_coin_one, used_coin_five, used_coin_ten, used_coin_hundred; // we have used how many coin
+reg [1:0] coin_pointer; // choose what coin to pay
+localparam CHOOSE_ONE = 0,
+           CHOOSE_FIVE = 1,
+           CHOOSE_TEN = 2,
+           CHOOSE_HUNDRED = 3;
 
+always @(posedge clk) begin
+  if (~reset_n)begin
+    coin_pointer = 0;
+  end
+  else if (P == S_MAIN_BUY) begin
+    if (btn_pressed[0]) begin
+      coin_pointer <= coin_pointer - 1;
+    end
+    else if (btn_pressed[1]) begin
+      coin_pointer <= coin_pointer + 1;
+    end
+  end
+end
+
+always @(posedge clk) begin
+  if (~reset_n)begin
+    used_coin_one <= 0;
+    used_coin_five <= 0;
+    used_coin_ten <= 0;
+    used_coin_hundred <= 0;
+    coin_one <= 9;
+    coin_five <= 9;
+    coin_ten <= 9;
+    coin_hundred <= 9;
+  end
+  else if (P == S_MAIN_PAY) begin
+    if (btn_pressed[2]) begin
+      if(usr_sw[0]) begin
+        // add coin
+        case(coin_pointer)
+          CHOOSE_ONE: begin
+            if(used_coin_one < coin_one)
+              used_coin_one <= used_coin_one + 1;
+          end
+          CHOOSE_FIVE: begin
+            if(used_coin_five < coin_five)
+              used_coin_five <= used_coin_five + 1;
+          end
+          CHOOSE_TEN: begin
+            if(used_coin_ten < coin_ten)
+              used_coin_ten <= used_coin_ten + 1;
+          end
+          CHOOSE_HUNDRED: begin
+            if(used_coin_hundred < coin_hundred)
+              used_coin_hundred <= used_coin_hundred + 1;
+          end
+        endcase
+      end
+      else begin
+        // minus coin
+        case(coin_pointer)
+          CHOOSE_ONE: begin
+            if(used_coin_one > 0)
+              used_coin_one <= used_coin_one - 1;
+          end
+          CHOOSE_FIVE: begin
+            if(used_coin_five > 0)
+              used_coin_five <= used_coin_five - 1;
+          end
+          CHOOSE_TEN: begin
+            if(used_coin_ten > 0)
+              used_coin_ten <= used_coin_ten - 1;
+          end
+          CHOOSE_HUNDRED: begin
+            if(used_coin_hundred > 0)
+              used_coin_hundred <= used_coin_hundred - 1;
+          end
+        endcase
+      end
+    end
+  end
+end
 // ------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------
@@ -754,4 +931,30 @@ end
 
 // ------------------------------------------------------------------------
 
+// LCD test
+always @(posedge clk) begin
+  if(P == S_MAIN_BUY) begin
+    row_A <= {bin_to_ascii(water_num), bin_to_ascii(tea_num), bin_to_ascii(juice_num), bin_to_ascii(cola_num), "            "};
+    row_B <= {bin_to_ascii(used_water_num), bin_to_ascii(used_tea_num), bin_to_ascii(used_juice_num), bin_to_ascii(used_cola_num), "            "};
+  end
+  else if(P == S_MAIN_PAY) begin
+    row_A <= {bin_to_ascii(coin_one), bin_to_ascii(coin_five), bin_to_ascii(coin_ten), bin_to_ascii(coin_hundred), "            "};
+    row_B <= {bin_to_ascii(used_coin_one), bin_to_ascii(used_coin_five), bin_to_ascii(used_coin_ten), bin_to_ascii(used_coin_hundred), "            "};
+  end
+end
+
+assign usr_led = P;
+
 endmodule
+
+/*
+FSM
+random out
+button choose
+overtime return
+change
+S_MAIN_BUY
+S_MAIN_PAY
+S_MAIN_CLC
+S_MAIN_
+*/
