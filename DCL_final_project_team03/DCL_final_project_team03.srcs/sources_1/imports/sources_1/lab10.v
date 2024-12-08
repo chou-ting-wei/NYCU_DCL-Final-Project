@@ -406,10 +406,10 @@ localparam SM_BLOCK_H      = 40;
 
 localparam rest_vpos  = 190;
 
-localparam num0_1_vpos  = 190+26;
-localparam num0_2_vpos  = 190+26;
-localparam num0_3_vpos  = 190+26;
-localparam num0_4_vpos  = 190+26;
+localparam num0_1_vpos  = 190+28;
+localparam num0_2_vpos  = 190+28;
+localparam num0_3_vpos  = 190+28;
+localparam num0_4_vpos  = 190+28;
 
 localparam num1_1_vpos  = 50;
 localparam num1_2_vpos  = 50;
