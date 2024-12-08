@@ -464,9 +464,9 @@ always @(*) begin
   // end
 end
 
-localparam num2_9_vpos  = 78;
-localparam num2_10_vpos  = 78;
-localparam num2_11_vpos  = 78;
+localparam num2_9_vpos  = 76;
+localparam num2_10_vpos  = 76;
+localparam num2_11_vpos  = 76;
 
 localparam slash1_1_vpos  = 50;
 localparam slash1_2_vpos  = 50;
@@ -1802,10 +1802,10 @@ always @(*) begin
     //   // rgb_next = data_vend_out;
     //   rgb_next = 12'hf00;
 
-    // else if (error_region && data_error_out != 12'h0f0 && P == S_MAIN_ERROR)
-    //   rgb_next = data_error_out;
-    else if (error_region)
-      rgb_next = 12'hf00;
+    else if (error_region && data_error_out != 12'h0f0 && P == S_MAIN_ERROR)
+      rgb_next = data_error_out;
+    // else if (error_region)
+    //   rgb_next = 12'hf00;
     
     else if (num0_1_region && data_num_out != 12'h0f0)
       rgb_next = data_num_out;
@@ -1980,7 +1980,7 @@ always @(*) begin // FSM next-state logic
 
       S_MAIN_BUY:begin
         if(times_up)begin
-          P_next = S_MAIN_INIT;
+          P_next = S_MAIN_ERROR;
         end
         else if(btn_pressed[3])begin
           P_next = S_MAIN_PAY;
@@ -1991,7 +1991,7 @@ always @(*) begin // FSM next-state logic
       end
       S_MAIN_PAY:begin
         if(times_up)begin
-          P_next = S_MAIN_INIT;
+          P_next = S_MAIN_ERROR;
         end
         else if(btn_pressed[3])begin
           P_next = S_MAIN_CALC;
