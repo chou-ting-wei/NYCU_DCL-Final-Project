@@ -2178,6 +2178,7 @@ always @(posedge clk) begin
     used_coin_five <= 0;
     used_coin_ten <= 0;
     used_coin_hundred <= 0;
+    used_total <= 0;
   end
   else if (P == S_MAIN_PAY) begin
     if (btn_pressed[2]) begin
