@@ -1,5 +1,5 @@
 # NYCU_DCL-Final-Project
-> 課程：113-1 Dlab  
+> 課程：113-1 DLab  
 > 組員：周廷威、林彥宇、王韋凱、許有暢
 
 ## 簡介
