@@ -674,9 +674,9 @@ assign juice_pos2 = 192;
 assign tea_pos2 = 105;
 assign coke_pos2 = 182;
 
-assign vending_water_pos = 88;
+assign vending_water_pos = 105;
 assign vending_juice_pos = 192;
-assign vending_tea_pos = 92;
+assign vending_tea_pos = 105;
 assign vending_coke_pos = 182;
 
 assign drop_pos = 176;
@@ -1661,13 +1661,13 @@ always @(*) begin
     else if (drop_region && fall_coke_region && data_coke_out != 12'h0f0)
       rgb_next = data_coke_out;
 
-    else if (vending_water_region && data_water_out2 != 12'h0f0)
+    else if (vending_water_region && data_water_out2 != 12'h0f0 && !water_sold_out)
       rgb_next = data_water_out2;
-    else if (vending_juice_region && data_juice_out2 != 12'h0f0)
+    else if (vending_juice_region && data_juice_out2 != 12'h0f0 && !juice_sold_out)
       rgb_next = data_juice_out2;
-    else if (vending_tea_region && data_tea_out2 != 12'h0f0)
+    else if (vending_tea_region && data_tea_out2 != 12'h0f0 && !tea_sold_out)
       rgb_next = data_tea_out2;
-    else if (vending_coke_region && data_coke_out2 != 12'h0f0)
+    else if (vending_coke_region && data_coke_out2 != 12'h0f0 && !coke_sold_out)
       rgb_next = data_coke_out2;
     
     else if (vend_region && data_vend_out != 12'h0f0)
@@ -1899,10 +1899,10 @@ reg [8:0] total_amount; // item value
 reg [3:0] water_num, tea_num, juice_num, coke_num; // we have how many coin
 reg [3:0] used_water_num, used_tea_num, used_juice_num, used_coke_num; // we have used how many coin
 reg [1:0] item_pointer;
-assign water_sold_out = (water_num == used_water_num);
-assign juice_sold_out = (juice_num == used_juice_num);
-assign tea_sold_out = (tea_num == used_tea_num);
-assign coke_sold_out = (coke_num == used_coke_num);
+assign water_sold_out = (water_num == used_water_num) || water_out;
+assign juice_sold_out = (juice_num == used_juice_num) || juice_out;
+assign tea_sold_out = (tea_num == used_tea_num) || tea_out;
+assign coke_sold_out = (coke_num == used_coke_num) || coke_out;
 localparam [1:0] CHOOSE_WATER = 2'd0,
                  CHOOSE_TEA = 2'd2,
                  CHOOSE_JUICE = 2'd1,
@@ -1911,6 +1911,9 @@ localparam [1:0] CHOOSE_WATER = 2'd0,
 // choose what item
 always @(posedge clk) begin
   if (~reset_n)begin
+    item_pointer = 0;
+  end
+  else if (P == S_MAIN_INIT) begin
     item_pointer = 0;
   end
   else if (P == S_MAIN_BUY) begin
@@ -1926,10 +1929,6 @@ end
 // calculate total amount
 always @(posedge clk) begin
   if (~reset_n)begin
-    water_num <= 9;
-    tea_num <= 9;
-    juice_num <= 9;
-    coke_num <= 9;
     used_water_num <= 0;
     used_tea_num <= 0;
     used_juice_num <= 0;
@@ -2008,6 +2007,9 @@ localparam [1:0] CHOOSE_ONE = 2'd0,
 
 always @(posedge clk) begin
   if (~reset_n)begin
+    coin_pointer = 0;
+  end
+  else if (P == S_MAIN_INIT) begin
     coin_pointer = 0;
   end
   else if (P == S_MAIN_PAY) begin
@@ -2144,7 +2146,17 @@ always @ (posedge clk) begin
     coin_five <= 3;
     coin_ten <= 2;
     coin_hundred <= 1;
-  end else if (P == S_MAIN_CALC) begin      
+    water_num <= 9;
+    tea_num <= 9;
+    juice_num <= 9;
+    coke_num <= 9;
+  end else if(P == S_MAIN_INIT)begin 
+    calc_done <= 1'b0;
+    ret_coin_hundred = 4'd0;
+    ret_coin_ten     = 4'd0;
+    ret_coin_five    = 4'd0;
+    ret_coin_one     = 4'd0;
+  end else if (P == S_MAIN_CALC && (calc_done == 0)) begin      
     if (used_total >= total_amount) begin
         refund = used_total - total_amount;
         
@@ -2191,6 +2203,10 @@ always @ (posedge clk) begin
             coin_five         <= coin_five - used_coin_five + ret_coin_five;
             coin_one          <= coin_one - used_coin_one + ret_coin_one;
             calc_done <= 1'b1;
+            water_num <= water_num - used_water_num;
+            tea_num <= tea_num - used_tea_num;
+            juice_num <= juice_num - used_juice_num;
+            coke_num <= coke_num - used_coke_num;
         end else begin
             // Not enough coins to provide exact refund
             ret_coin_hundred = 4'd0;
@@ -2213,7 +2229,32 @@ always @ (posedge clk) begin
 end
 
 // ------------------------------------------------------------------------
+reg water_out, tea_out, juice_out, coke_out;
+always @(posedge clk)begin
+  if(~reset_n)begin
+    water_out<=0;
+    tea_out<=0;
+    juice_out<=0;
+    coke_out<=0;
+  end
+  else if(P == S_MAIN_INIT)begin
+    water_out<=0;
+    tea_out<=0;
+    juice_out<=0;
+    coke_out<=0;
+  end
+  else if(P == S_MAIN_BUY && P_next == S_MAIN_PAY)begin
+    if(water_sold_out)
+      water_out<=1;
+    if(juice_sold_out)
+      juice_out<=1;
+    if(tea_sold_out)
+      tea_out<=1;
+    if(coke_sold_out)
+      coke_out<=1;
+  end
 
+end
 // ------------------------------------------------------------------------
 // S_MAIN_DROP
 reg [3:0] what_item_fall;
