@@ -1791,8 +1791,8 @@ always @(*) begin
     else if (vending_coke_region && data_coke_out2 != 12'h0f0 && !coke_sold_out)
       rgb_next = data_coke_out2;
     
-    else if (vend_region && data_vend_out != 12'h0f0)
-      rgb_next = data_vend_out;
+    // else if (vend_region && data_vend_out != 12'h0f0)
+    //   rgb_next = data_vend_out;
       // rgb_next = 12'hf00;
     // else if (fish2_region && data_f2_out != 12'h0f0)
     //   rgb_next = data_f2_out;
