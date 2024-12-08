@@ -1761,13 +1761,13 @@ always @(*) begin
         rgb_next = 12'hfff - data_vend_out;
     end
     else if (block1_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_BUY) ? 12'h96b : 12'h555;
     else if (block2_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_PAY) ? 12'h96b : 12'h555;
     else if (block3_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_CALC) ? 12'h96b : 12'h555;
     else if (block4_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_DROP) ? 12'h96b : 12'h555;
     
     else if (rest_region && data_rest_out != 12'h0f0)
       rgb_next = data_rest_out;
