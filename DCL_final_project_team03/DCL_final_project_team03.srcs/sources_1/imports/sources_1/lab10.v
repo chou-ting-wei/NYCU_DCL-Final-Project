@@ -2312,26 +2312,26 @@ always @ (posedge clk) begin
         ret_coin_one     = 4'd0;
         
         // Calculate hundreds
-        if (refund >= 100 && mach_coin_hundred > 0) begin
-            ret_coin_hundred = (refund / 100) > mach_coin_hundred ? mach_coin_hundred : (refund / 100);
+        if (refund >= 100 && (mach_coin_hundred + used_coin_hundred) > 0) begin
+            ret_coin_hundred = (refund / 100) > (mach_coin_hundred + used_coin_hundred) ? (mach_coin_hundred + used_coin_hundred) : (refund / 100);
             refund = refund - ret_coin_hundred * 100;
         end
         
         // Calculate tens
-        if (refund >= 10 && mach_coin_ten > 0) begin
-            ret_coin_ten = (refund / 10) > mach_coin_ten ? mach_coin_ten : (refund / 10);
+        if (refund >= 10 && (mach_coin_ten + used_coin_ten) > 0) begin
+            ret_coin_ten = (refund / 10) > (mach_coin_ten + used_coin_ten) ? (mach_coin_ten + used_coin_ten) : (refund / 10);
             refund = refund - ret_coin_ten * 10;
         end
         
         // Calculate fives
-        if (refund >= 5 && mach_coin_five > 0) begin
-            ret_coin_five = (refund / 5) > mach_coin_five ? mach_coin_five : (refund / 5);
+        if (refund >= 5 && (mach_coin_five + used_coin_five) > 0) begin
+            ret_coin_five = (refund / 5) > (mach_coin_five + used_coin_five) ? (mach_coin_five + used_coin_five) : (refund / 5);
             refund = refund - ret_coin_five * 5;
         end
         
         // Calculate ones
-        if (refund >= 1 && mach_coin_one > 0) begin
-            ret_coin_one = (refund / 1) > mach_coin_one ? mach_coin_one : (refund / 1);
+        if (refund >= 1 && (mach_coin_one + used_coin_one) > 0) begin
+            ret_coin_one = (refund / 1) > (mach_coin_one + used_coin_one) ? (mach_coin_one + used_coin_one) : (refund / 1);
             refund = refund - ret_coin_one * 1;
         end
         
