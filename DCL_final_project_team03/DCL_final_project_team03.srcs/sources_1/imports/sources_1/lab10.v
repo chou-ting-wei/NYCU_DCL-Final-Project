@@ -157,6 +157,24 @@ wire        num2_7_region;
 wire [9:0]  num2_8_pos;
 wire        num2_8_region;
 
+wire [9:0]  num2_9_pos;
+wire        num2_9_region;
+
+wire [9:0]  num2_10_pos;
+wire        num2_10_region;
+
+wire [9:0]  num2_11_pos;
+wire        num2_11_region;
+
+wire [9:0]  num_time_1_pos;
+wire        num_time_1_region;
+
+wire [9:0]  num_time_2_pos;
+wire        num_time_2_region;
+
+wire [9:0]  error_pos;
+wire        error_region;
+
 wire [9:0]  num3_1_pos;
 wire        num3_1_region;
 
@@ -283,6 +301,10 @@ wire [20:0] sram_slash_addr;
 wire [11:0] data_slash_in;
 wire [11:0] data_slash_out;
 
+wire [20:0] sram_error_addr;
+wire [11:0] data_error_in;
+wire [11:0] data_error_out;
+
 wire sram_we, sram_en;
 
 // General VGA control signals
@@ -314,8 +336,6 @@ reg  [20:0] pixel_juice_addr2;
 reg  [20:0] pixel_tea_addr2;
 reg  [20:0] pixel_coke_addr2;
 
-reg  [20:0] pixel_drop_addr;
-
 reg  [20:0] pixel_num_addr;
 reg  [20:0] pixel_slash_addr;
 
@@ -325,6 +345,7 @@ reg  [20:0] pixel_money_top_addr;
 reg  [20:0] pixel_money_addr;
 
 reg  [20:0] pixel_rest_addr;
+reg  [20:0] pixel_error_addr;
 
 // Declare the video buffer size
 localparam VBUF_W = 320; // video buffer width
@@ -345,6 +366,11 @@ localparam WATER_W      = 18;
 localparam WATER_H      = 27;
 reg [20:0] water_addr;
 
+localparam error_vpos  = 200;
+localparam ERROR_W = 21;
+localparam ERROR_H = 19;
+reg [20:0] error_addr;
+
 localparam select_top_vpos  = 10;
 localparam select_vpos1  = 20;
 localparam select_vpos2  = 191;
@@ -362,6 +388,7 @@ initial begin
   select_addr = 10*BLOCK_W;
   money_top_addr = 0;
   money_addr = 10*BLOCK_W;
+  error_addr = 0;
 end
 
 
@@ -379,10 +406,10 @@ localparam SM_BLOCK_H      = 40;
 
 localparam rest_vpos  = 190;
 
-localparam num0_1_vpos  = 190+30;
-localparam num0_2_vpos  = 190+30;
-localparam num0_3_vpos  = 190+30;
-localparam num0_4_vpos  = 190+30;
+localparam num0_1_vpos  = 190+28;
+localparam num0_2_vpos  = 190+28;
+localparam num0_3_vpos  = 190+28;
+localparam num0_4_vpos  = 190+28;
 
 localparam num1_1_vpos  = 50;
 localparam num1_2_vpos  = 50;
@@ -410,6 +437,36 @@ localparam num4_3_vpos  = 221;
 localparam num4_4_vpos  = 221;
 localparam NUM_W      = 7;
 localparam NUM_H      = 9;
+
+reg [31:0] num_time_1_vpos;
+reg [31:0] num_time_2_vpos;
+
+always @(*) begin
+  if (P == S_MAIN_BUY) begin
+    num_time_1_vpos = 50;
+    num_time_2_vpos = 50;
+  end
+  else if (P == S_MAIN_PAY) begin
+    num_time_1_vpos = 107;
+    num_time_2_vpos = 107;
+  end
+  // else if (P == S_MAIN_CALC) begin
+  //   num_time_1_vpos = 164;
+  //   num_time_2_vpos = 164;
+  // end
+  // else if (P == S_MAIN_DROP) begin
+  //   num_time_1_vpos = 221;
+  //   num_time_2_vpos = 221;
+  // end
+  // else begin
+  //   num_time_1_vpos = 0;
+  //   num_time_2_vpos = 0;
+  // end
+end
+
+localparam num2_9_vpos  = 76;
+localparam num2_10_vpos  = 76;
+localparam num2_11_vpos  = 76;
 
 localparam slash1_1_vpos  = 50;
 localparam slash1_2_vpos  = 50;
@@ -545,9 +602,9 @@ assign btn_pressed = (btn_level & ~prev_btn_level);
 // The following code describes an initialized SRAM memory block that
 // stores a 320x240 12-bit seabed image, plus two 64x32 fish images.
 
-// wire [20:0] sram_tmp_addr;
-// wire [11:0] data_tmp_in;
-// wire [11:0] data_tmp_out;
+wire [20:0] sram_tmp_addr;
+wire [11:0] data_tmp_in;
+wire [11:0] data_tmp_out;
 
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(VEND_W*VEND_H+NUM_W * NUM_H * 10), .FILE("images.mem"))
   ram_1 (.clk(clk), .we(sram_we), .en(sram_en),
@@ -581,12 +638,6 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(SM_BLOCK_H*SM_BLOCK_W+NUM_H*N
           .addr_1(sram_rest_addr), .data_i_1(data_rest_in), .data_o_1(data_rest_out),
           .addr_2(sram_slash_addr), .data_i_2(data_slash_in), .data_o_2(data_slash_out));
 
-
-assign sram_we = usr_sw[3]; // In this demo, we do not write the SRAM. However, if
-                                  // you set 'sram_we' to 0, Vivado fails to synthesize
-                                  // ram0 as a BRAM -- this is a bug in Vivado.
-assign sram_en = 1;               // Here, we always enable the SRAM block.
-
 // dropping item sram
 sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(WATER_W*WATER_H+JUICE_W*JUICE_H), .FILE("images7.mem"))
   ram_7 (.clk(clk), .we(sram_we), .en(sram_en),
@@ -597,10 +648,16 @@ sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(TEA_W*TEA_H+COKE_W*COKE_H), .
   ram_8 (.clk(clk), .we(sram_we), .en(sram_en),
           .addr_1(sram_tea_addr), .data_i_1(data_tea_in), .data_o_1(data_tea_out),
           .addr_2(sram_coke_addr), .data_i_2(data_coke_in), .data_o_2(data_coke_out));
-// assign sram_we = usr_sw[0]; // In this demo, we do not write the SRAM. However, if
-//                                   // you set 'sram_we' to 0, Vivado fails to synthesize
-//                                   // ram0 as a BRAM -- this is a bug in Vivado.
-// assign sram_en = 1;               // Here, we always enable the SRAM block.
+
+sram #(.DATA_WIDTH(12), .ADDR_WIDTH(18), .RAM_SIZE(ERROR_H*ERROR_W), .FILE("images9.mem"))
+  ram_9 (.clk(clk), .we(sram_we), .en(sram_en),
+          .addr_1(sram_error_addr), .data_i_1(data_error_in), .data_o_1(data_error_out),
+          .addr_2(sram_tmp_addr), .data_i_2(data_tmp_in), .data_o_2(data_tmp_out));
+
+assign sram_we = usr_sw[3]; // In this demo, we do not write the SRAM. However, if
+                                  // you set 'sram_we' to 0, Vivado fails to synthesize
+                                  // ram0 as a BRAM -- this is a bug in Vivado.
+assign sram_en = 1;               // Here, we always enable the SRAM block.
 
 // assign sram_f1_addr = pixel_f1_addr;
 // assign data_f1_in = 12'h000; // SRAM is read-only so we tie inputs to zeros.
@@ -654,6 +711,9 @@ assign data_rest_in = 12'h000;
 assign sram_slash_addr = pixel_slash_addr;
 assign data_slash_in = 12'h000;
 
+assign sram_error_addr = pixel_error_addr;
+assign data_error_in = 12'h000;
+
 // End of the SRAM memory block.
 // ------------------------------------------------------------------------
 
@@ -674,9 +734,9 @@ assign juice_pos2 = 192;
 assign tea_pos2 = 105;
 assign coke_pos2 = 182;
 
-assign vending_water_pos = 88;
+assign vending_water_pos = 105;
 assign vending_juice_pos = 192;
-assign vending_tea_pos = 92;
+assign vending_tea_pos = 105;
 assign vending_coke_pos = 182;
 
 assign drop_pos = 176;
@@ -721,10 +781,10 @@ assign num4_4_pos = 235+304;
 //left-top
 // 15x30 30x30 45x30 75x30
 assign rest_pos = 220;
-assign num0_1_pos = 20+40;
-assign num0_2_pos = 20+70;
+assign num0_1_pos = 20+44;
+assign num0_2_pos = 20+74;
 assign num0_3_pos = 20+110;
-assign num0_4_pos = 20+170;
+assign num0_4_pos = 20+164;
 
 assign slash1_1_pos = 235+64;
 assign slash1_2_pos = 235+144;
@@ -736,7 +796,14 @@ assign slash2_2_pos = 235+144;
 assign slash2_3_pos = 235+224;
 assign slash2_4_pos = 235+304;
 
+assign num2_9_pos = 235+352;
+assign num2_10_pos = 235+366;
+assign num2_11_pos = 235+380;
 
+assign num_time_1_pos = 235+366;
+assign num_time_2_pos = 235+380;
+
+assign error_pos = 20+121;
 
 assign drop_water_pos = water_pos_reg;
 assign drop_tea_pos = tea_pos_reg; // right bound
@@ -1060,6 +1127,10 @@ assign rest_region =
           pixel_y >= (rest_vpos<<1) && pixel_y < (rest_vpos+SM_BLOCK_H)<<1 &&
           (pixel_x + 199) >= sm_block_pos && pixel_x < sm_block_pos + 1;
 
+assign error_region =
+          pixel_y >= (error_vpos<<1) && pixel_y < (error_vpos+ERROR_H)<<1 &&
+          (pixel_x + 41) >= error_pos && pixel_x < error_pos + 1;
+
 assign num0_1_region =
           pixel_y >= (num0_1_vpos<<1) && pixel_y < (num0_1_vpos+NUM_H)<<1 &&
           (pixel_x + 13) >= num0_1_pos && pixel_x < num0_1_pos + 1;
@@ -1139,6 +1210,26 @@ assign num2_7_region =
 assign num2_8_region =
           pixel_y >= (num2_8_vpos<<1) && pixel_y < (num2_8_vpos+NUM_H)<<1 &&
           (pixel_x + 13) >= num2_8_pos && pixel_x < num2_8_pos + 1;
+
+assign num2_9_region =
+          pixel_y >= (num2_9_vpos<<1) && pixel_y < (num2_9_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_9_pos && pixel_x < num2_9_pos + 1;
+
+assign num2_10_region =
+          pixel_y >= (num2_10_vpos<<1) && pixel_y < (num2_10_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_10_pos && pixel_x < num2_10_pos + 1;
+
+assign num2_11_region =
+          pixel_y >= (num2_11_vpos<<1) && pixel_y < (num2_11_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num2_11_pos && pixel_x < num2_11_pos + 1;
+
+assign num_time_1_region =
+          pixel_y >= (num_time_1_vpos<<1) && pixel_y < (num_time_1_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num_time_1_pos && pixel_x < num_time_1_pos + 1;
+
+assign num_time_2_region =
+          pixel_y >= (num_time_2_vpos<<1) && pixel_y < (num_time_2_vpos+NUM_H)<<1 &&
+          (pixel_x + 13) >= num_time_2_pos && pixel_x < num_time_2_pos + 1;
 
 assign num3_1_region =
           pixel_y >= (num3_1_vpos<<1) && pixel_y < (num3_1_vpos+NUM_H)<<1 &&
@@ -1425,6 +1516,11 @@ always @ (posedge clk) begin
         pixel_rest_addr <=  ((pixel_y >> 1) - rest_vpos) * SM_BLOCK_W +
                               ((pixel_x + (SM_BLOCK_W * 2 - 1) - sm_block_pos) >> 1);
       end
+
+      if (error_region) begin
+        pixel_error_addr <=  ((pixel_y >> 1) - error_vpos) * ERROR_W +
+                              ((pixel_x + (ERROR_W * 2 - 1) - error_pos) >> 1);
+      end
       
       if (num0_1_region) begin
         pixel_num_addr <= select_base_addr(mach_coin_one) + 
@@ -1529,6 +1625,31 @@ always @ (posedge clk) begin
         pixel_num_addr <= select_base_addr(coin_hundred) + 
                               ((pixel_y >> 1) - num2_8_vpos) * NUM_W +
                               ((pixel_x + (NUM_W * 2 - 1) - num2_8_pos) >> 1);
+      end
+      if (num2_9_region) begin
+        pixel_num_addr <= select_base_addr(hundreds_num) + 
+                              ((pixel_y >> 1) - num2_9_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_9_pos) >> 1);
+      end
+      if (num2_10_region) begin
+        pixel_num_addr <= select_base_addr(tens_num) + 
+                              ((pixel_y >> 1) - num2_10_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_10_pos) >> 1);
+      end
+      if (num2_11_region) begin
+        pixel_num_addr <= select_base_addr(ones_num) + 
+                              ((pixel_y >> 1) - num2_11_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num2_11_pos) >> 1);
+      end
+      if (num_time_1_region) begin
+        pixel_num_addr <= select_base_addr(time_tens_num) + 
+                              ((pixel_y >> 1) - num_time_1_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num_time_1_pos) >> 1);
+      end
+      if (num_time_2_region) begin
+        pixel_num_addr <= select_base_addr(time_ones_num) + 
+                              ((pixel_y >> 1) - num_time_2_vpos) * NUM_W +
+                              ((pixel_x + (NUM_W * 2 - 1) - num_time_2_pos) >> 1);
       end
       if (num3_1_region) begin
         pixel_num_addr <= select_base_addr(ret_coin_one) + 
@@ -1661,13 +1782,13 @@ always @(*) begin
     else if (drop_region && fall_coke_region && data_coke_out != 12'h0f0)
       rgb_next = data_coke_out;
 
-    else if (vending_water_region && data_water_out2 != 12'h0f0)
+    else if (vending_water_region && data_water_out2 != 12'h0f0 && !water_sold_out)
       rgb_next = data_water_out2;
-    else if (vending_juice_region && data_juice_out2 != 12'h0f0)
+    else if (vending_juice_region && data_juice_out2 != 12'h0f0 && !juice_sold_out)
       rgb_next = data_juice_out2;
-    else if (vending_tea_region && data_tea_out2 != 12'h0f0)
+    else if (vending_tea_region && data_tea_out2 != 12'h0f0 && !tea_sold_out)
       rgb_next = data_tea_out2;
-    else if (vending_coke_region && data_coke_out2 != 12'h0f0)
+    else if (vending_coke_region && data_coke_out2 != 12'h0f0 && !coke_sold_out)
       rgb_next = data_coke_out2;
     
     else if (vend_region && data_vend_out != 12'h0f0)
@@ -1680,6 +1801,12 @@ always @(*) begin
     // if (vend_region)
     //   // rgb_next = data_vend_out;
     //   rgb_next = 12'hf00;
+
+    else if (error_region && data_error_out != 12'h0f0 && P == S_MAIN_ERROR)
+      rgb_next = data_error_out;
+    // else if (error_region)
+    //   rgb_next = 12'hf00;
+    
     else if (num0_1_region && data_num_out != 12'h0f0)
       rgb_next = data_num_out;
     else if (num0_2_region && data_num_out != 12'h0f0)
@@ -1738,6 +1865,23 @@ always @(*) begin
     else if (num4_4_region && data_num_out != 12'h0f0)
       rgb_next = data_num_out;
     
+    else if (num2_9_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_10_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    else if (num2_11_region && data_num_out != 12'h0f0)
+      rgb_next = data_num_out;
+    // else if (num2_9_region)
+    //   rgb_next = 12'hf00;
+    // else if (num2_10_region)
+    //   rgb_next = 12'hf00;
+    // else if (num2_11_region)
+    //   rgb_next = 12'hf00;
+    else if (num_time_1_region && data_num_out != 12'h0f0 && (P == S_MAIN_BUY || P == S_MAIN_PAY))
+      rgb_next = data_num_out;
+    else if (num_time_2_region && data_num_out != 12'h0f0 && (P == S_MAIN_BUY || P == S_MAIN_PAY))
+      rgb_next = data_num_out;
+    
     else if (slash1_1_region && data_slash_out != 12'h0f0)
       rgb_next = data_slash_out;
     else if (slash1_2_region && data_slash_out != 12'h0f0)
@@ -1761,14 +1905,14 @@ always @(*) begin
         rgb_next = 12'hfff - data_vend_out;
     end
     else if (block1_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_BUY) ? 12'h96b : 12'h555;
     else if (block2_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_PAY) ? 12'h96b : 12'h555;
     else if (block3_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_CALC) ? 12'h96b : 12'h555;
     else if (block4_region)
-      rgb_next = 12'h555;
-    
+      rgb_next = (P == S_MAIN_DROP) ? 12'h96b : 12'h555;
+
     else if (rest_region && data_rest_out != 12'h0f0)
       rgb_next = data_rest_out;
 
@@ -1786,7 +1930,7 @@ always @(*) begin
       rgb_next = data_money_out;
 
     else if (sm_block_region)
-      rgb_next = 12'h555;
+      rgb_next = (P == S_MAIN_ERROR) ? 12'hd24 : 12'h555;
     else begin
       if(usr_sw[1])
         rgb_next = 12'hed5;
@@ -1836,7 +1980,7 @@ always @(*) begin // FSM next-state logic
 
       S_MAIN_BUY:begin
         if(times_up)begin
-          P_next = S_MAIN_INIT;
+          P_next = S_MAIN_ERROR;
         end
         else if(btn_pressed[3])begin
           P_next = S_MAIN_PAY;
@@ -1847,7 +1991,7 @@ always @(*) begin // FSM next-state logic
       end
       S_MAIN_PAY:begin
         if(times_up)begin
-          P_next = S_MAIN_INIT;
+          P_next = S_MAIN_ERROR;
         end
         else if(btn_pressed[3])begin
           P_next = S_MAIN_CALC;
@@ -1899,10 +2043,10 @@ reg [8:0] total_amount; // item value
 reg [3:0] water_num, tea_num, juice_num, coke_num; // we have how many coin
 reg [3:0] used_water_num, used_tea_num, used_juice_num, used_coke_num; // we have used how many coin
 reg [1:0] item_pointer;
-assign water_sold_out = (water_num == used_water_num);
-assign juice_sold_out = (juice_num == used_juice_num);
-assign tea_sold_out = (tea_num == used_tea_num);
-assign coke_sold_out = (coke_num == used_coke_num);
+assign water_sold_out = (water_num == used_water_num) || water_out;
+assign juice_sold_out = (juice_num == used_juice_num) || juice_out;
+assign tea_sold_out = (tea_num == used_tea_num) || tea_out;
+assign coke_sold_out = (coke_num == used_coke_num) || coke_out;
 localparam [1:0] CHOOSE_WATER = 2'd0,
                  CHOOSE_TEA = 2'd2,
                  CHOOSE_JUICE = 2'd1,
@@ -1911,6 +2055,9 @@ localparam [1:0] CHOOSE_WATER = 2'd0,
 // choose what item
 always @(posedge clk) begin
   if (~reset_n)begin
+    item_pointer = 0;
+  end
+  else if (P == S_MAIN_INIT) begin
     item_pointer = 0;
   end
   else if (P == S_MAIN_BUY) begin
@@ -1926,10 +2073,6 @@ end
 // calculate total amount
 always @(posedge clk) begin
   if (~reset_n)begin
-    water_num <= 9;
-    tea_num <= 9;
-    juice_num <= 9;
-    coke_num <= 9;
     used_water_num <= 0;
     used_tea_num <= 0;
     used_juice_num <= 0;
@@ -2008,6 +2151,9 @@ localparam [1:0] CHOOSE_ONE = 2'd0,
 
 always @(posedge clk) begin
   if (~reset_n)begin
+    coin_pointer = 0;
+  end
+  else if (P == S_MAIN_INIT) begin
     coin_pointer = 0;
   end
   else if (P == S_MAIN_PAY) begin
@@ -2144,7 +2290,17 @@ always @ (posedge clk) begin
     coin_five <= 3;
     coin_ten <= 2;
     coin_hundred <= 1;
-  end else if (P == S_MAIN_CALC) begin      
+    water_num <= 9;
+    tea_num <= 9;
+    juice_num <= 9;
+    coke_num <= 9;
+  end else if(P == S_MAIN_INIT)begin 
+    calc_done <= 1'b0;
+    ret_coin_hundred = 4'd0;
+    ret_coin_ten     = 4'd0;
+    ret_coin_five    = 4'd0;
+    ret_coin_one     = 4'd0;
+  end else if (P == S_MAIN_CALC && (calc_done == 0)) begin      
     if (used_total >= total_amount) begin
         refund = used_total - total_amount;
         
@@ -2191,6 +2347,10 @@ always @ (posedge clk) begin
             coin_five         <= coin_five - used_coin_five + ret_coin_five;
             coin_one          <= coin_one - used_coin_one + ret_coin_one;
             calc_done <= 1'b1;
+            water_num <= water_num - used_water_num;
+            tea_num <= tea_num - used_tea_num;
+            juice_num <= juice_num - used_juice_num;
+            coke_num <= coke_num - used_coke_num;
         end else begin
             // Not enough coins to provide exact refund
             ret_coin_hundred = 4'd0;
@@ -2213,7 +2373,32 @@ always @ (posedge clk) begin
 end
 
 // ------------------------------------------------------------------------
+reg water_out, tea_out, juice_out, coke_out;
+always @(posedge clk)begin
+  if(~reset_n)begin
+    water_out<=0;
+    tea_out<=0;
+    juice_out<=0;
+    coke_out<=0;
+  end
+  else if(P == S_MAIN_INIT)begin
+    water_out<=0;
+    tea_out<=0;
+    juice_out<=0;
+    coke_out<=0;
+  end
+  else if(P == S_MAIN_BUY && P_next == S_MAIN_PAY)begin
+    if(water_sold_out)
+      water_out<=1;
+    if(juice_sold_out)
+      juice_out<=1;
+    if(tea_sold_out)
+      tea_out<=1;
+    if(coke_sold_out)
+      coke_out<=1;
+  end
 
+end
 // ------------------------------------------------------------------------
 // S_MAIN_DROP
 reg [3:0] what_item_fall;
